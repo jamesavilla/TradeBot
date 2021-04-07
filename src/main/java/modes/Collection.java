@@ -269,17 +269,17 @@ public final class Collection {
         if (symbol == null) {
             symbol = filename.split("_")[0];
         }
-        try (PriceWriter writer = new PriceWriter(filename)) {
+         try (PriceWriter writer = new PriceWriter(filename)) {
             List<Candlestick> candlesticks = CurrentAPI.get().getCandlestickBars(symbol, CandlestickInterval.FIVE_MINUTES, null, null, start);
             for (int i = 0; i < candlesticks.size() - 1; i++) {
                 Candlestick candlestick = candlesticks.get(i);
-                writer.writeBean(new PriceBean(candlestick.getCloseTime(), Double.parseDouble(candlestick.getClose()), true));
+                writer.writeBean(new PriceBean(candlestick.getCloseTime(), Double.parseDouble(candlestick.getClose()), 0, 0, 0, 0, true));
             }
             Candlestick lastCandle = candlesticks.get(candlesticks.size() - 1);
             long candleTime = lastCandle.getCloseTime();
             if (lastCandle.getCloseTime() == start) {
                 candleTime += 300000L;
-                writer.writeBean(new PriceBean(lastCandle.getCloseTime(), Double.parseDouble(lastCandle.getClose())));
+                writer.writeBean(new PriceBean(lastCandle.getCloseTime(), Double.parseDouble(lastCandle.getClose()), 0, 0, 0, 0));
             }
             PriceBean lastBean = null;
             boolean first = true;
@@ -463,7 +463,7 @@ class TradesCallback implements BinanceApiCallback<List<AggTrade>> {
                     double newPrice = Double.parseDouble(trade.getPrice());
                     if (lastPrice == newPrice) continue;
                     lastPrice = newPrice;
-                    writer.writeBean(new PriceBean(trade.getTradeTime(), newPrice));
+                    writer.writeBean(new PriceBean(trade.getTradeTime(), newPrice, 0, 0, 0, 0));
                 }
             } catch (IOException e) {
                 e.printStackTrace();

@@ -98,21 +98,26 @@ public class Trade {
         if (newPrice > high) high = newPrice;
 
         if (getProfit() > TAKE_PROFIT) {
-            explanation += "Closed due to: Take profit";
+            explanation += "\nClosed due to: Take profit";
             BuySell.close(this);
             return;
         }
 
         if (newPrice < high * (1 - TRAILING_SL)) {
-            explanation += "Closed due to: Trailing SL";
+            explanation += "\nClosed due to: Trailing SL";
             BuySell.close(this);
             return;
         }
 
         if (CLOSE_USE_CONFLUENCE && confluence <= -CLOSE_CONFLUENCE) {
-            explanation += "Closed due to: Indicator confluence of " + confluence;
+            explanation += "\nClosed due to: Negative indicator confluence of " + confluence;
             BuySell.close(this);
         }
+
+//        if (CLOSE_USE_CONFLUENCE && confluence >= CLOSE_CONFLUENCE) {
+//            explanation += "Closed due to: Positive indicator confluence of " + confluence;
+//            BuySell.close(this);
+//        }
     }
 
     @Override

@@ -36,10 +36,13 @@ public class MACD implements Indicator {
     }
 
     @Override
-    public double getTemp(double newPrice) {
+    public String getName() { return ""; }
+
+    @Override
+    public double getTemp(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice) {
         //temporary values
-        double longTemp = longEMA.getTemp(newPrice);
-        double shortTemp = shortEMA.getTemp(newPrice);
+        double longTemp = longEMA.getTemp(newPrice, openPrice, previousClosePrice, previousOpenPrice);
+        double shortTemp = shortEMA.getTemp(newPrice, openPrice, previousClosePrice, previousOpenPrice);
 
         double tempMACD = shortTemp - longTemp;
         double tempSignal = tempMACD * multiplier + currentSignal * (1 - multiplier);
@@ -67,18 +70,18 @@ public class MACD implements Indicator {
     }
 
     @Override
-    public void update(double newPrice) {
+    public void update(double newPrice, double openPrice, double previousClosePrice, double previousRsi, double previousOpenPrice) {
         //Updating the EMA values before updating MACD and Signal line.
         lastTick = get();
-        shortEMA.update(newPrice);
-        longEMA.update(newPrice);
+        shortEMA.update(newPrice, openPrice, previousClosePrice, previousRsi, previousOpenPrice);
+        longEMA.update(newPrice, openPrice, previousClosePrice, previousRsi, previousOpenPrice);
         currentMACD = shortEMA.get() - longEMA.get();
         currentSignal = currentMACD * multiplier + currentSignal * (1 - multiplier);
     }
 
     @Override
-    public int check(double newPrice) {
-        double change = (getTemp(newPrice) - lastTick) / Math.abs(lastTick);
+    public int check(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice) {
+        double change = (getTemp(newPrice, openPrice, previousClosePrice, previousOpenPrice) - lastTick) / Math.abs(lastTick);
         if (change > MACD.SIGNAL_CHANGE && get() < 0) {
             explanation = "MACD histogram grew by " + Formatter.formatPercent(change);
             return 1;

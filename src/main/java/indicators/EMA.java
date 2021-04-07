@@ -30,7 +30,10 @@ public class EMA implements Indicator {
     }
 
     @Override
-    public double getTemp(double newPrice) {
+    public String getName() { return ""; }
+
+    @Override
+    public double getTemp(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice) {
         return (newPrice - currentEMA) * multiplier + currentEMA;
     }
 
@@ -47,12 +50,12 @@ public class EMA implements Indicator {
         if (historyNeeded) EMAhistory.add(currentEMA);
         //Dont use latest unclosed candle;
         for (int i = period; i < closingPrices.size() - 1; i++) {
-            update(closingPrices.get(i));
+            update(closingPrices.get(i), 0, 0, 0, 0);
         }
     }
 
     @Override
-    public void update(double newPrice) {
+    public void update(double newPrice, double openPrice, double previousClosePrice, double previousRsi, double previousOpenPrice) {
         // EMA = (Close - EMA(previousBar)) * multiplier + EMA(previousBar)
         currentEMA = (newPrice - currentEMA) * multiplier + currentEMA;
 
@@ -60,7 +63,7 @@ public class EMA implements Indicator {
     }
 
     @Override
-    public int check(double newPrice) {
+    public int check(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice) {
         return 0;
     }
 

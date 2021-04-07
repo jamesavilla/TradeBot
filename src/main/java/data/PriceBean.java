@@ -2,20 +2,33 @@ package data;
 
 import system.Formatter;
 
+import java.util.Date;
+
 public class PriceBean {
     private final double price;
     private final long timestamp;
     private boolean closing;
+    private double openPrice;
+    private double previousClosePrice;
+    private double previousRsi;
+    private double previousOpenPrice;
 
-
-    public PriceBean(long timestamp, double price) {
+    public PriceBean(long timestamp, double price, double openPrice, double previousClosePrice, double previousRsi, double previousOpenPrice) {
         this.price = price;
+        this.openPrice = openPrice;
+        this.previousClosePrice = previousClosePrice;
+        this.previousRsi = previousRsi;
+        this.previousOpenPrice = previousOpenPrice;
         this.timestamp = timestamp;
         this.closing = false;
     }
 
-    public PriceBean(long timestamp, double price, boolean closing) {
+    public PriceBean(long timestamp, double price, double openPrice, double previousClosePrice, double previousRsi, double previousOpenPrice, boolean closing) {
         this.price = price;
+        this.openPrice = openPrice;
+        this.previousClosePrice = previousClosePrice;
+        this.previousRsi = previousRsi;
+        this.previousOpenPrice = previousOpenPrice;
         this.timestamp = timestamp;
         this.closing = closing;
     }
@@ -26,6 +39,38 @@ public class PriceBean {
 
     public Long getTimestamp() {
         return timestamp;
+    }
+
+    public double getOpenPrice() {
+        return openPrice;
+    }
+
+    public void setOpenPrice(double openingPrice) {
+        this.openPrice = openingPrice;
+    }
+
+    public double getPreviousClosePrice() {
+        return previousClosePrice;
+    }
+
+    public void setPreviousClosePrice(double previousClosingPrice) {
+        this.previousClosePrice = previousClosingPrice;
+    }
+
+    public double getPreviousRsi() {
+        return previousRsi;
+    }
+
+    public void setPreviousRsi(double previousRsi) {
+        this.previousRsi = previousRsi;
+    }
+
+    public double getPreviousOpenPrice() {
+        return previousOpenPrice;
+    }
+
+    public void setPreviousOpenPrice(double previousOpenPrice) {
+        this.previousOpenPrice = previousOpenPrice;
     }
 
     public String getDate() {
@@ -46,6 +91,10 @@ public class PriceBean {
     }
 
     public String toCsvString(){
-        return String.format("%d,%s,%d", timestamp, price, closing ? 1 : 0);
+        return String.format("%s,%s,%d", new Date(timestamp), price, closing ? 1 : 0);
+    }
+
+    public String dumpAll() {
+        return String.format("%s,%s,%s,%s,%s", new Date(timestamp), price, openPrice, previousClosePrice, previousOpenPrice);
     }
 }

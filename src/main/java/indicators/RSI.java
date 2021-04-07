@@ -2,6 +2,7 @@ package indicators;
 
 import system.Formatter;
 
+import java.util.Date;
 import java.util.List;
 
 public class RSI implements Indicator {
@@ -15,12 +16,14 @@ public class RSI implements Indicator {
     public static int POSITIVE_MAX;
     public static int NEGATIVE_MIN;
     public static int NEGATIVE_MAX;
+    private double previousRsiValue;
 
     public RSI(List<Double> closingPrice, int period) {
         avgUp = 0;
         avgDwn = 0;
         this.period = period;
         explanation = "";
+        previousRsiValue = 0;
         init(closingPrice);
     }
 
@@ -42,7 +45,7 @@ public class RSI implements Indicator {
 
         //Dont use latest unclosed value
         for (int i = period + 1; i < closingPrices.size() - 1; i++) {
-            update(closingPrices.get(i));
+            update(closingPrices.get(i), 0, 0, 0, 0);
         }
     }
 
@@ -52,7 +55,10 @@ public class RSI implements Indicator {
     }
 
     @Override
-    public double getTemp(double newPrice) {
+    public String getName() { return "RSI"; }
+
+    @Override
+    public double getTemp(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice) {
         double change = newPrice - prevClose;
         double tempUp;
         double tempDwn;
@@ -67,7 +73,8 @@ public class RSI implements Indicator {
     }
 
     @Override
-    public void update(double newPrice) {
+    public void update(double newPrice, double openPrice, double previousClosePrice, double previousRsi, double previousOpenPrice) {
+        previousRsiValue = previousRsi;
         double change = newPrice - prevClose;
         if (change > 0) {
             avgUp = (avgUp * (period - 1) + change) / (double) period;
@@ -80,21 +87,29 @@ public class RSI implements Indicator {
     }
 
     @Override
-    public int check(double newPrice) {
-        double temp = getTemp(newPrice);
-        if (temp < POSITIVE_MIN) {
+    public int check(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice) {
+        double temp = getTemp(newPrice, openPrice, previousClosePrice, previousOpenPrice);
+        //System.out.println(new Date() + " RSI - temp: " + temp + " newPrice: " + newPrice + " POSITIVE_MAX: " + POSITIVE_MAX);
+        if(previousClosePrice == 0 || openPrice == 0) {
+            return 0;
+        }
+        else if (temp < POSITIVE_MIN) {
             explanation = "RSI of " + Formatter.formatDecimal(temp);
             return 2;
         }
-        if (temp < POSITIVE_MAX) {
-            explanation = "RSI of " + Formatter.formatDecimal(temp);
-            return 1;
-        }
-        if (temp > NEGATIVE_MIN) {
+        else if (temp < POSITIVE_MAX && newPrice < openPrice) {
             explanation = "RSI of " + Formatter.formatDecimal(temp);
             return -1;
         }
-        if (temp > NEGATIVE_MAX) {
+        else if (temp < POSITIVE_MAX && newPrice >= previousClosePrice) {
+            explanation = "RSI of " + Formatter.formatDecimal(temp);
+            return 1;
+        }
+        else if (temp > NEGATIVE_MIN && temp < previousRsiValue) {
+            explanation = "RSI of " + Formatter.formatDecimal(temp);
+            return -1;
+        }
+        else if (temp > NEGATIVE_MAX) {
             explanation = "RSI of " + Formatter.formatDecimal(temp);
             return -2;
         }
