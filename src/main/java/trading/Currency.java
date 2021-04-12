@@ -146,7 +146,7 @@ public class Currency {
                     previousClosePrice = bean.getPrice();
                     previousOpenPrice = currentOpenPrice;
                 }
-                System.out.println(bean.dumpAll());
+                //System.out.println(bean.dumpAll());
                 bean = reader.readPrice();
             }
 

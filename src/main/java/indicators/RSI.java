@@ -90,8 +90,8 @@ public class RSI implements Indicator {
     @Override
     public int check(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice, boolean hasActiveTrade, Trade activeTrade) {
         double temp = getTemp(newPrice, openPrice, previousClosePrice, previousOpenPrice, hasActiveTrade, activeTrade);
-        System.out.println("RSI - temp: " + temp + " newPrice: " + newPrice + " POSITIVE_MAX: " + POSITIVE_MAX);
-
+        //System.out.println("RSI - temp: " + temp + " newPrice: " + newPrice + " POSITIVE_MAX: " + POSITIVE_MAX + " hasActiveTrade: " + hasActiveTrade);
+        //System.out.println(" activeTrade: " + activeTrade);
         double previousRsiPadded = (previousRsiValue*0.05)+previousRsiValue;
 
         if(previousClosePrice == 0 || openPrice == 0) {
@@ -123,7 +123,7 @@ public class RSI implements Indicator {
             explanation = "RSI of " + Formatter.formatDecimal(temp);
             return -1;
         }
-        else if (temp > 65 && !hasActiveTrade) {
+        else if (temp > 60 && !hasActiveTrade) {
             //System.out.println("14");
             explanation = "RSI of " + Formatter.formatDecimal(temp);
             return 1;
