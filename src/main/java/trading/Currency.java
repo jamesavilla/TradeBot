@@ -38,6 +38,7 @@ public class Currency {
     private double previousClosePrice;
     private double previousRSI;
     private double previousOpenPrice;
+    private double previousHighPrice;
 
     //Backtesting data
     private final StringBuilder log = new StringBuilder();
@@ -65,6 +66,7 @@ public class Currency {
         currentOpenPrice = Double.parseDouble(history.get(history.size() - 1).getOpen());
         previousClosePrice = Double.parseDouble(history.get(history.size() - 2).getClose());
         previousOpenPrice = Double.parseDouble(history.get(history.size() - 2).getOpen());
+        previousHighPrice = Double.parseDouble(history.get(history.size() - 2).getHigh());
 
         BinanceApiWebSocketClient client = CurrentAPI.getFactory().newWebSocketClient();
         //We add a websocket listener that automatically updates our values and triggers our strategy or trade logic as needed
@@ -73,6 +75,10 @@ public class Currency {
             //System.out.println(Thread.currentThread().getId());
             double newPrice = Double.parseDouble(response.getPrice());
             long newTime = response.getEventTime();
+
+            if(newPrice > previousHighPrice) {
+                previousHighPrice = newPrice;
+            }
 
             //We want to toss messages that provide no new information
             if (currentPrice == newPrice && newTime <= candleTime) {
@@ -88,7 +94,7 @@ public class Currency {
 
             if (newTime > candleTime) {
                 //System.out.println("CANDLE " + response);
-                accept(new PriceBean(candleTime, newPrice, currentOpenPrice, previousClosePrice, 0, previousOpenPrice, true));
+                accept(new PriceBean(candleTime, newPrice, currentOpenPrice, previousClosePrice, 0, previousOpenPrice, previousHighPrice, true));
                 candleTime += 300000L;
                 setCurrentOpenPrice.set(true);
                 previousClosePrice = newPrice;
@@ -97,7 +103,7 @@ public class Currency {
 
             //System.out.println(String.format("%s,%s,%s,%s,%s",new Date(candleTime),newPrice,currentPrice,currentOpenPrice,previousClosePrice));
 
-            accept(new PriceBean(newTime, newPrice, currentOpenPrice, previousClosePrice, 0, previousOpenPrice));
+            accept(new PriceBean(newTime, newPrice, currentOpenPrice, previousClosePrice, 0, previousOpenPrice, previousHighPrice));
         });
         System.out.println("---SETUP DONE FOR " + this);
     }
@@ -140,7 +146,7 @@ public class Currency {
                     previousClosePrice = bean.getPrice();
                     previousOpenPrice = currentOpenPrice;
                 }
-                //System.out.println(bean.dumpAll());
+                System.out.println(bean.dumpAll());
                 bean = reader.readPrice();
             }
 
@@ -186,12 +192,12 @@ public class Currency {
             currentlyCalculating.set(true);
             //We can disable the strategy and trading logic to only check indicator and price accuracy
             int confluence = check();
-            //System.out.println("confluence " + confluence);
+            //System.out.println("confluence " + confluence + "\n");
             if (hasActiveTrade()) { //We only allow one active trade per currency, this means we only need to do one of the following:
                 activeTrade.update(currentPrice, confluence);//Update the active trade stop-loss and high values
             } else {
                 if (confluence >= CONFLUENCE) {
-                    BuySell.open(Currency.this, "Trade opened due to: " + getExplanations());
+                    BuySell.open(Currency.this, "Trade opened due to:\n " + getExplanations());
                 }
             }
             currentlyCalculating.set(false);
@@ -199,7 +205,7 @@ public class Currency {
     }
 
     public int check() {
-        return indicators.stream().mapToInt(indicator -> indicator.check(currentPrice, currentOpenPrice, previousClosePrice, previousOpenPrice)).sum();
+        return indicators.stream().mapToInt(indicator -> indicator.check(currentPrice, currentOpenPrice, previousClosePrice, previousOpenPrice, hasActiveTrade(), getActiveTrade())).sum();
     }
 
     public String getExplanations() {
@@ -207,7 +213,7 @@ public class Currency {
         for (Indicator indicator : indicators) {
             String explanation = indicator.getExplanation();
             if (explanation == null) explanation = "";
-            builder.append(explanation.equals("") ? "" : explanation + "\t");
+            builder.append(explanation.equals("") ? "" : explanation + "\n");
         }
         return builder.toString();
     }
@@ -238,6 +244,10 @@ public class Currency {
 
     public void appendLogLine(String s) {
         log.append(s).append("\n");
+    }
+
+    public double getCurrentOpenPrice() {
+        return currentOpenPrice;
     }
 
     public void log(String path) {
@@ -304,7 +314,7 @@ public class Currency {
         if (currentTime == candleTime)
             indicators.forEach(indicator -> s.append(", ").append(indicator.getClass().getSimpleName()).append(": ").append(system.Formatter.formatDecimal(indicator.get())));
         else
-            indicators.forEach(indicator -> s.append(", ").append(indicator.getClass().getSimpleName()).append(": ").append(Formatter.formatDecimal(indicator.getTemp(currentPrice, currentOpenPrice, previousClosePrice, previousOpenPrice))));
+            indicators.forEach(indicator -> s.append(", ").append(indicator.getClass().getSimpleName()).append(": ").append(Formatter.formatDecimal(indicator.getTemp(currentPrice, currentOpenPrice, previousClosePrice, previousOpenPrice, hasActiveTrade(), getActiveTrade()))));
         s.append(", hasActive: ").append(hasActiveTrade()).append(")");
         return s.toString();
     }

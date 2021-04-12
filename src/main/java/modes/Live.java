@@ -108,7 +108,7 @@ public final class Live {
                             continue;
                         }
                     }
-                    final Trade trade = new Trade(balanceCurrency, balanceCurrency.getPrice(), amount, "Trade opened due to: Added based on live account\t");
+                    final Trade trade = new Trade(balanceCurrency, balanceCurrency.getPrice(), amount, "Trade opened due to: \nAdded based on live account", balanceCurrency.getCurrentOpenPrice());
                     localAccount.getActiveTrades().add(trade);
                     balanceCurrency.setActiveTrade(trade);
                     System.out.println("Added an active trade of " + balance.getFree() + " " + current + " at " + Formatter.formatDecimal(trade.getEntryPrice()) + " based on existing balance in account");

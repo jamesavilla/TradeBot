@@ -5,6 +5,7 @@ import system.Formatter;
 public class Trade {
 
     private double high; //Set the highest price
+    private double low; //Set the lowest price
 
     public static double TRAILING_SL; //It's in percentages, but using double for comfort.
     public static double TAKE_PROFIT; //It's in percentages, but using double for comfort.
@@ -16,15 +17,18 @@ public class Trade {
     private final Currency currency; //What cryptocurrency is used.
     private double amount; //How much are you buying or selling. I.E 6 bitcoins or smth.
     private double closePrice;
+    private double openPrice;
     private long closeTime;
     private String explanation;
 
-    public Trade(Currency currency, double entryPrice, double amount, String explanation) {
+    public Trade(Currency currency, double entryPrice, double amount, String explanation, double openPrice) {
         this.currency = currency;
         this.entryPrice = entryPrice;
         this.high = entryPrice;
+        this.low = entryPrice;
         this.amount = amount;
         this.explanation = explanation;
+        this.openPrice = openPrice;
         openTime = currency.getCurrentTime();
         closePrice = -1;
     }
@@ -50,6 +54,14 @@ public class Trade {
 
     public double getClosePrice() {
         return closePrice;
+    }
+
+    public double getOpenPrice() {
+        return openPrice;
+    }
+
+    public void setOpenPrice(double openPrice) {
+        this.openPrice = openPrice;
     }
 
     public Currency getCurrency() { //for getting the currency to calculate what the price is now.
@@ -95,23 +107,25 @@ public class Trade {
 
     //Checks if there is a new highest price for the trade or if the trade has dropped below the stoploss.
     public void update(double newPrice, int confluence) {
+        if(newPrice < low) low = newPrice;
         if (newPrice > high) high = newPrice;
 
         if (getProfit() > TAKE_PROFIT) {
-            explanation += "\nClosed due to: Take profit";
+            explanation += "Closed due to: Take profit" + "\n";
             BuySell.close(this);
             return;
         }
 
         if (newPrice < high * (1 - TRAILING_SL)) {
-            explanation += "\nClosed due to: Trailing SL";
+            explanation += "Closed due to: Trailing SL" + "\n";
             BuySell.close(this);
             return;
         }
 
         if (CLOSE_USE_CONFLUENCE && confluence <= -CLOSE_CONFLUENCE) {
-            explanation += "\nClosed due to: Negative indicator confluence of " + confluence;
+            explanation += "Closed due to: Negative indicator confluence of " + confluence + "\n";
             BuySell.close(this);
+            //System.exit(0);
         }
 
 //        if (CLOSE_USE_CONFLUENCE && confluence >= CLOSE_CONFLUENCE) {
@@ -126,7 +140,7 @@ public class Trade {
                 + currency.getPair() + " " + Formatter.formatDecimal(amount) + "\n"
                 + "open: " + Formatter.formatDate(openTime) + " at " + entryPrice + "\n"
                 + (isClosed() ? "close: " + Formatter.formatDate(closeTime) + " at " + closePrice : "current price: " + currency.getPrice()) + "\n"
-                + "high: " + high + ", profit: " + Formatter.formatPercent(getProfit()) + "\n"
+                + "high: " + high + ", low: " + low + ", profit: " + Formatter.formatPercent(getProfit()) + "\n"
                 + explanation + "\n";
     }
 }

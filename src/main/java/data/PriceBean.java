@@ -12,23 +12,26 @@ public class PriceBean {
     private double previousClosePrice;
     private double previousRsi;
     private double previousOpenPrice;
+    private double previousHighPrice;
 
-    public PriceBean(long timestamp, double price, double openPrice, double previousClosePrice, double previousRsi, double previousOpenPrice) {
+    public PriceBean(long timestamp, double price, double openPrice, double previousClosePrice, double previousRsi, double previousOpenPrice, double previousHighPrice) {
         this.price = price;
         this.openPrice = openPrice;
         this.previousClosePrice = previousClosePrice;
         this.previousRsi = previousRsi;
         this.previousOpenPrice = previousOpenPrice;
+        this.previousHighPrice = previousHighPrice;
         this.timestamp = timestamp;
         this.closing = false;
     }
 
-    public PriceBean(long timestamp, double price, double openPrice, double previousClosePrice, double previousRsi, double previousOpenPrice, boolean closing) {
+    public PriceBean(long timestamp, double price, double openPrice, double previousClosePrice, double previousRsi, double previousOpenPrice, double previousHighPrice, boolean closing) {
         this.price = price;
         this.openPrice = openPrice;
         this.previousClosePrice = previousClosePrice;
         this.previousRsi = previousRsi;
         this.previousOpenPrice = previousOpenPrice;
+        this.previousHighPrice = previousHighPrice;
         this.timestamp = timestamp;
         this.closing = closing;
     }

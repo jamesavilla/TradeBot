@@ -1,6 +1,7 @@
 package indicators;
 
 import system.Formatter;
+import trading.Trade;
 
 import java.util.List;
 
@@ -39,10 +40,10 @@ public class MACD implements Indicator {
     public String getName() { return ""; }
 
     @Override
-    public double getTemp(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice) {
+    public double getTemp(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice, boolean hasActiveTrade, Trade activeTrade) {
         //temporary values
-        double longTemp = longEMA.getTemp(newPrice, openPrice, previousClosePrice, previousOpenPrice);
-        double shortTemp = shortEMA.getTemp(newPrice, openPrice, previousClosePrice, previousOpenPrice);
+        double longTemp = longEMA.getTemp(newPrice, openPrice, previousClosePrice, previousOpenPrice, hasActiveTrade, activeTrade);
+        double shortTemp = shortEMA.getTemp(newPrice, openPrice, previousClosePrice, previousOpenPrice, hasActiveTrade, activeTrade);
 
         double tempMACD = shortTemp - longTemp;
         double tempSignal = tempMACD * multiplier + currentSignal * (1 - multiplier);
@@ -80,9 +81,10 @@ public class MACD implements Indicator {
     }
 
     @Override
-    public int check(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice) {
-        double change = (getTemp(newPrice, openPrice, previousClosePrice, previousOpenPrice) - lastTick) / Math.abs(lastTick);
+    public int check(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice, boolean hasActiveTrade, Trade activeTrade) {
+        double change = (getTemp(newPrice, openPrice, previousClosePrice, previousOpenPrice, hasActiveTrade, activeTrade) - lastTick) / Math.abs(lastTick);
         if (change > MACD.SIGNAL_CHANGE && get() < 0) {
+            //System.out.println("12");
             explanation = "MACD histogram grew by " + Formatter.formatPercent(change);
             return 1;
         }

@@ -1,4 +1,6 @@
 package indicators;
+import trading.Trade;
+
 import java.util.Date;
 import java.util.List;
 
@@ -36,6 +38,7 @@ public class DBB implements Indicator {
             //System.out.println("3");
             return -1;
         }
+
 //        else if (closingPrice < lowerBand) {
 //            //System.out.println("4");
 //            return -1;
@@ -47,40 +50,52 @@ public class DBB implements Indicator {
     public String getName() { return "DBB"; }
 
     @Override
-    public double getTemp(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice) {
-        double tempMidBand = sma.getTemp(newPrice, openPrice, previousClosePrice, previousOpenPrice);
+    public double getTemp(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice, boolean hasActiveTrade, Trade activeTrade) {
+        double tempMidBand = sma.getTemp(newPrice, openPrice, previousClosePrice, previousOpenPrice, hasActiveTrade, activeTrade);
         double tempStdev = sma.tempStandardDeviation(newPrice);
         double tempUpperBand = tempMidBand + tempStdev * 2;
         double tempUpperMidBand = tempMidBand + tempStdev;
         double tempLowerMidBand = tempMidBand - tempStdev;
         double tempLowerBand = tempMidBand - tempStdev * 2;
 
-        if(previousClosePrice == 1923.3) {
-            //System.out.println(" DBB - newPrice: " + newPrice + " tempLowerBand: " + tempLowerBand + " tempUpperBand: " + tempUpperBand + " previousClosePrice: " + previousClosePrice + " openPrice: " + openPrice);
-        }
+        System.out.println("DBB - newPrice: " + newPrice + " tempLowerBand: " + tempLowerBand + " tempUpperBand: " + tempUpperBand + " previousClosePrice: " + previousClosePrice + " openPrice: " + openPrice + " previousOpenPrice: " + previousOpenPrice);
 
         //if ((tempUpperBand - tempLowerBand) / tempMidBand < 0.05) //Low volatility case
             //return 0;
-        //if (tempUpperMidBand < newPrice && newPrice <= tempUpperBand)
-            //return 1;
-        if(openPrice < tempLowerBand && newPrice > previousClosePrice && openPrice < newPrice && newPrice > previousOpenPrice) {
-            //System.out.println("1");
+        double previousOpenPricePadded = (previousOpenPrice*0.0025)+previousOpenPrice;
+        double openPricePadded = (openPrice*0.001)+openPrice;
+        double activeTradeOpenPrice = hasActiveTrade ? activeTrade.getOpenPrice() : 0;
+
+        if((previousOpenPrice < tempLowerMidBand && previousClosePrice < tempLowerMidBand) && newPrice > tempLowerBand && newPrice < tempMidBand && newPrice > previousClosePrice && newPrice > previousOpenPricePadded && previousClosePrice > previousOpenPrice) {
+        //if((previousClosePrice < tempLowerBand || previousOpenPrice < tempLowerBand) && newPrice > tempLowerBand && newPrice > openPrice) {
+            System.out.println("1");
             return 1;
         }
-//        else if (tempLowerBand < newPrice && newPrice <= tempLowerMidBand) {
-//            //System.out.println("2");
+        else if(previousClosePrice > tempLowerBand && previousClosePrice < tempLowerMidBand && newPrice > openPrice && newPrice > previousClosePrice && newPrice < tempMidBand && newPrice > openPricePadded) {
+            System.out.println("2");
+            return 1;
+        }
+        else if(newPrice > openPricePadded && newPrice > tempMidBand) {
+            System.out.println("3");
+            return 2;
+        }
+        // MID BUYS
+        /*else if(newPrice > openPricePadded && newPrice > previousClosePrice && newPrice < tempUpperMidBand && newPrice > tempMidBand && previousClosePrice > previousOpenPrice) {
+            return 1;
+        }*/
+//        else if (newPrice < tempLowerBand) {
 //            return -1;
 //        }
-        else if (previousClosePrice > tempUpperBand && newPrice < previousClosePrice) {
-            //System.out.println("3");
+        else if (previousClosePrice > tempUpperBand && newPrice < previousClosePrice && newPrice < openPrice && newPrice < tempUpperBand && openPrice != activeTradeOpenPrice) {
+            System.out.println("4");
             return -1;
         }
-        else if (previousOpenPrice > tempUpperBand && newPrice < openPrice && newPrice < tempUpperBand) {
-            //System.out.println("3");
+        else if (openPrice < previousClosePrice && newPrice < previousClosePrice && newPrice < tempLowerBand && newPrice < openPrice && openPrice != activeTradeOpenPrice) {
+            System.out.println("5");
             return -1;
         }
-//        else if (newPrice < tempLowerBand && newPrice < openPrice) {
-//            System.out.println("4444444444444444444444444");
+//        else if (openPrice > tempUpperBand && newPrice < openPrice) {
+//            System.out.println("INNNNNNNNNNNNNN" + newPrice);
 //            return -1;
 //        }
 
@@ -116,12 +131,12 @@ public class DBB implements Indicator {
     }
 
     @Override
-    public int check(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice) {
-        if (getTemp(newPrice, openPrice, previousClosePrice, previousOpenPrice) == 1) {
+    public int check(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice, boolean hasActiveTrade, Trade activeTrade) {
+        if (getTemp(newPrice, openPrice, previousClosePrice, previousOpenPrice, hasActiveTrade, activeTrade) == 1) {
             explanation = "Price in DBB buy zone";
             return 1;
         }
-        else if (getTemp(newPrice, openPrice, previousClosePrice, previousOpenPrice) == -1) {
+        else if (getTemp(newPrice, openPrice, previousClosePrice, previousOpenPrice, hasActiveTrade, activeTrade) == -1) {
             explanation = "Price in DBB sell zone";
             return -1;
         }

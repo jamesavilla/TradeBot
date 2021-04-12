@@ -1,5 +1,7 @@
 package indicators;
 
+import trading.Trade;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,7 +35,7 @@ public class EMA implements Indicator {
     public String getName() { return ""; }
 
     @Override
-    public double getTemp(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice) {
+    public double getTemp(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice, boolean hasActiveTrade, Trade activeTrade) {
         return (newPrice - currentEMA) * multiplier + currentEMA;
     }
 
@@ -63,7 +65,7 @@ public class EMA implements Indicator {
     }
 
     @Override
-    public int check(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice) {
+    public int check(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice, boolean hasActiveTrade, Trade activeTrade) {
         return 0;
     }
 

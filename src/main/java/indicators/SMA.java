@@ -1,5 +1,7 @@
 package indicators;
 
+import trading.Trade;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -24,7 +26,7 @@ public class SMA implements Indicator {
     public String getName() { return ""; }
 
     @Override
-    public double getTemp(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice) {
+    public double getTemp(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice, boolean hasActiveTrade, Trade activeTrade) {
         return ((currentSum - prices.get(0) + newPrice) / (double) period);
     }
 
@@ -48,7 +50,7 @@ public class SMA implements Indicator {
     }
 
     @Override
-    public int check(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice) {
+    public int check(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice, boolean hasActiveTrade, Trade activeTrade) {
         return 0;
     }
 

@@ -1,6 +1,7 @@
 package indicators;
 
 import system.Formatter;
+import trading.Trade;
 
 import java.util.Date;
 import java.util.List;
@@ -58,7 +59,7 @@ public class RSI implements Indicator {
     public String getName() { return "RSI"; }
 
     @Override
-    public double getTemp(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice) {
+    public double getTemp(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice, boolean hasActiveTrade, Trade activeTrade) {
         double change = newPrice - prevClose;
         double tempUp;
         double tempDwn;
@@ -87,31 +88,48 @@ public class RSI implements Indicator {
     }
 
     @Override
-    public int check(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice) {
-        double temp = getTemp(newPrice, openPrice, previousClosePrice, previousOpenPrice);
-        //System.out.println(new Date() + " RSI - temp: " + temp + " newPrice: " + newPrice + " POSITIVE_MAX: " + POSITIVE_MAX);
+    public int check(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice, boolean hasActiveTrade, Trade activeTrade) {
+        double temp = getTemp(newPrice, openPrice, previousClosePrice, previousOpenPrice, hasActiveTrade, activeTrade);
+        System.out.println("RSI - temp: " + temp + " newPrice: " + newPrice + " POSITIVE_MAX: " + POSITIVE_MAX);
+
+        double previousRsiPadded = (previousRsiValue*0.05)+previousRsiValue;
+
         if(previousClosePrice == 0 || openPrice == 0) {
+            //System.out.println("6");
             return 0;
         }
         else if (temp < POSITIVE_MIN) {
+            //System.out.println("7");
             explanation = "RSI of " + Formatter.formatDecimal(temp);
             return 2;
         }
         else if (temp < POSITIVE_MAX && newPrice < openPrice) {
+            //System.out.println("8");
             explanation = "RSI of " + Formatter.formatDecimal(temp);
             return -1;
         }
-        else if (temp < POSITIVE_MAX && newPrice >= previousClosePrice) {
-            explanation = "RSI of " + Formatter.formatDecimal(temp);
+        else if (temp < POSITIVE_MAX && newPrice >= previousClosePrice && temp > previousRsiPadded) {
+            //System.out.println("9");
+            explanation = "RSI of " + Formatter.formatDecimal(temp) + " previousRsiValue:" + previousRsiValue + " previousRsiPadded:" + previousRsiPadded;
             return 1;
         }
         else if (temp > NEGATIVE_MIN && temp < previousRsiValue) {
+            //System.out.println("10");
             explanation = "RSI of " + Formatter.formatDecimal(temp);
             return -1;
         }
-        else if (temp > NEGATIVE_MAX) {
+        else if (temp > NEGATIVE_MAX && hasActiveTrade) {
+            //System.out.println("11");
             explanation = "RSI of " + Formatter.formatDecimal(temp);
-            return -2;
+            return -1;
+        }
+        else if (temp > 65 && !hasActiveTrade) {
+            //System.out.println("14");
+            explanation = "RSI of " + Formatter.formatDecimal(temp);
+            return 1;
+        }
+        else if (temp < (previousRsiValue-10)) {
+            return -1;
         }
         explanation = "";
         return 0;

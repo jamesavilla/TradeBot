@@ -12,6 +12,8 @@ import modes.Live;
 import system.ConfigSetup;
 import system.Formatter;
 import system.Mode;
+import utilities.SlackMessage;
+import utilities.SlackUtilities;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -73,12 +75,12 @@ public class BuySell {
                     + ", at a price of " + Formatter.formatDecimal(fillsPrice) + " " + ConfigSetup.getFiat());
             fiatCost = fillsPrice;
             amount = fillsQty;
-            trade = new Trade(currency, fillsPrice / fillsQty, amount, explanation);
+            trade = new Trade(currency, fillsPrice / fillsQty, amount, explanation, currency.getCurrentOpenPrice());
             System.out.println("Opened trade at an avg open of " + Formatter.formatDecimal(trade.getEntryPrice()) + " ("
                     + Formatter.formatPercent((trade.getEntryPrice() - currentPrice) / trade.getEntryPrice())
                     + " from current)");
         } else {
-            trade = new Trade(currency, currentPrice, amount, explanation);
+            trade = new Trade(currency, currentPrice, amount, explanation, currency.getCurrentOpenPrice());
         }
 
         currency.setActiveTrade(trade);
@@ -88,11 +90,19 @@ public class BuySell {
         localAccount.addToWallet(currency, amount);
         localAccount.openTrade(trade);
 
-        String message = "---" + Formatter.formatDate(trade.getOpenTime())
+        String message = Formatter.formatDate(trade.getOpenTime())
                 + " opened trade (" + Formatter.formatDecimal(trade.getAmount()) + " "
-                + currency.getPair() + "), at " + Formatter.formatDecimal(trade.getEntryPrice())
-                + ", " + trade.getExplanation();
-        System.out.println(message);
+                + currency.getPair() + ") at " + Formatter.formatDecimal(trade.getEntryPrice())
+                + "\n " + trade.getExplanation();
+        System.out.println("---" + message);
+
+        if(Mode.get().equals(Mode.SIMULATION) || Mode.get().equals(Mode.LIVE)) {
+            SlackMessage slackMessage = SlackMessage.builder()
+                    .text(":large_green_circle: " + message)
+                    .build();
+            SlackUtilities.sendMessage(slackMessage);
+        }
+
         if (Mode.get().equals(Mode.BACKTESTING)) currency.appendLogLine(message);
     }
 
@@ -131,12 +141,20 @@ public class BuySell {
         localAccount.closeTrade(trade);
         trade.getCurrency().setActiveTrade(null);
 
-        String message = "---" + (Formatter.formatDate(trade.getCloseTime())) + " closed trade ("
+        String message = (Formatter.formatDate(trade.getCloseTime())) + " closed trade ("
                 + Formatter.formatDecimal(trade.getAmount()) + " " + trade.getCurrency().getPair()
-                + "), at " + Formatter.formatDecimal(trade.getClosePrice())
+                + ") at " + Formatter.formatDecimal(trade.getClosePrice())
                 + ", with " + Formatter.formatPercent(trade.getProfit()) + " profit"
-                + "\n------" + trade.getExplanation();
-        System.out.println(message);
+                + "\n" + trade.getExplanation();
+        System.out.println("---" + message);
+
+        if(Mode.get().equals(Mode.SIMULATION) || Mode.get().equals(Mode.LIVE)) {
+            SlackMessage slackMessage = SlackMessage.builder()
+                    .text(":red_circle: " + message)
+                    .build();
+            SlackUtilities.sendMessage(slackMessage);
+        }
+
         if (Mode.get().equals(Mode.BACKTESTING)) trade.getCurrency().appendLogLine(message);
     }
 

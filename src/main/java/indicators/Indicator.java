@@ -1,5 +1,7 @@
 package indicators;
 
+import trading.Trade;
+
 import java.util.List;
 
 public interface Indicator {
@@ -11,7 +13,7 @@ public interface Indicator {
     String getName();
 
     //Used to get value of indicator simulated with the latest non-closed price
-    double getTemp(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice);
+    double getTemp(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice, boolean hasActiveTrade, Trade activeTrade);
 
     //Used in constructor to set initial value
     void init(List<Double> closingPrices);
@@ -20,7 +22,7 @@ public interface Indicator {
     void update(double newPrice, double openPrice, double previousClosePrice, double previousRsi, double previousOpenPrice);
 
     //Used to check for buy signal
-    int check(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice);
+    int check(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice, boolean hasActiveTrade, Trade activeTrade);
 
     String getExplanation();
 }

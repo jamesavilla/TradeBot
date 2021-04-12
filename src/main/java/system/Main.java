@@ -159,7 +159,7 @@ public class Main {
                             System.out.println("\nID out of range, use \"currencies\" to see valid IDs!");
                             continue;
                         }
-                        BuySell.open(currencies.get(openIndex - 1), "Trade opened due to: Manually opened\t");
+                        BuySell.open(currencies.get(openIndex - 1), "Trade opened due to: \nManually opened");
                         break;
                     case "close":
                         System.out.println("Enter ID of active trade");
