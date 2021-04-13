@@ -1,14 +1,14 @@
 MACD change indicator:0.55
 RSI positive side minimum:15
 RSI positive side maximum:42
-RSI negative side minimum:60
+RSI negative side minimum:55
 RSI negative side maximum:70
 Simulation mode starting value:1000
-Percentage of money per trade:0.25
-Trailing SL:0.05
-Take profit:0.15
+Percentage of money per trade:0.45
+Trailing SL:0.07
+Take profit:0.10
 Confluence:2
 Close confluence:2
 Use confluence to close:true
-Currencies to track:ETH
+Currencies to track:ETH, BNB
 FIAT:USDT

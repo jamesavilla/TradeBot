@@ -8,6 +8,7 @@ import com.binance.api.client.domain.account.NewOrderResponseType;
 import com.binance.api.client.domain.general.FilterType;
 import com.binance.api.client.domain.general.SymbolFilter;
 import com.binance.api.client.exception.BinanceApiException;
+import lombok.SneakyThrows;
 import modes.Live;
 import system.ConfigSetup;
 import system.Formatter;
@@ -15,8 +16,11 @@ import system.Mode;
 import utilities.SlackMessage;
 import utilities.SlackUtilities;
 
+import java.io.File;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.nio.file.Files;
+import java.util.List;
 import java.util.Optional;
 
 import static com.binance.api.client.domain.account.NewOrder.marketBuy;
@@ -26,6 +30,8 @@ public class BuySell {
 
     private static LocalAccount localAccount;
     public static double MONEY_PER_TRADE;
+
+    private static final File credentialsFile = new File("credentials.txt");
 
     public static void setAccount(LocalAccount localAccount) {
         BuySell.localAccount = localAccount;
@@ -40,6 +46,7 @@ public class BuySell {
     }
 
     //Used by strategy
+    @SneakyThrows
     public static void open(Currency currency, String explanation) {
         if (currency.hasActiveTrade()) {
             System.out.println("---Cannot open trade since there already is an open trade for " + currency.getPair() + "!");
@@ -100,13 +107,14 @@ public class BuySell {
             SlackMessage slackMessage = SlackMessage.builder()
                     .text(":large_green_circle: " + message)
                     .build();
-            SlackUtilities.sendMessage(slackMessage);
+            SlackUtilities.sendMessage(slackMessage, getSlackWebhook());
         }
 
         if (Mode.get().equals(Mode.BACKTESTING)) currency.appendLogLine(message);
     }
 
     //Used by trade
+    @SneakyThrows
     public static void close(Trade trade) {
         if (Mode.get().equals(Mode.LIVE)) {
             NewOrderResponse order = placeOrder(trade.getCurrency(), trade.getAmount(), false);
@@ -152,7 +160,7 @@ public class BuySell {
             SlackMessage slackMessage = SlackMessage.builder()
                     .text(":red_circle: " + message)
                     .build();
-            SlackUtilities.sendMessage(slackMessage);
+            SlackUtilities.sendMessage(slackMessage, getSlackWebhook());
         }
 
         if (Mode.get().equals(Mode.BACKTESTING)) trade.getCurrency().appendLogLine(message);
@@ -217,5 +225,21 @@ public class BuySell {
             System.out.println(e.getMessage());
             return null;
         }
+    }
+
+    private static String getSlackWebhook() throws Exception {
+        String slackWebhook = "";
+        if (credentialsFile.exists()) {
+            try {
+                final List<String> strings = Files.readAllLines(credentialsFile.toPath());
+                if (!strings.get(0).matches("\\*+")) {
+                    slackWebhook = strings.get(2);
+                }
+            }
+            catch (Exception e) {
+                throw new Exception();
+            }
+        }
+        return slackWebhook;
     }
 }

@@ -146,7 +146,7 @@ public class Currency {
                     previousClosePrice = bean.getPrice();
                     previousOpenPrice = currentOpenPrice;
                 }
-                //System.out.println(bean.dumpAll());
+                System.out.println(bean.dumpAll());
                 bean = reader.readPrice();
             }
 
@@ -192,7 +192,7 @@ public class Currency {
             currentlyCalculating.set(true);
             //We can disable the strategy and trading logic to only check indicator and price accuracy
             int confluence = check();
-            //System.out.println("confluence " + confluence + "\n");
+            System.out.println("confluence " + confluence + "\n");
             if (hasActiveTrade()) { //We only allow one active trade per currency, this means we only need to do one of the following:
                 activeTrade.update(currentPrice, confluence);//Update the active trade stop-loss and high values
             } else {

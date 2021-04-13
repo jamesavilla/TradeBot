@@ -95,40 +95,41 @@ public class RSI implements Indicator {
         double previousRsiPadded = (previousRsiValue*0.05)+previousRsiValue;
 
         if(previousClosePrice == 0 || openPrice == 0) {
-            //System.out.println("6");
+            System.out.println("6");
             return 0;
         }
         else if (temp < POSITIVE_MIN) {
-            //System.out.println("7");
+            System.out.println("7");
             explanation = "RSI of " + Formatter.formatDecimal(temp);
             return 2;
         }
         else if (temp < POSITIVE_MAX && newPrice < openPrice) {
-            //System.out.println("8");
+            System.out.println("8");
             explanation = "RSI of " + Formatter.formatDecimal(temp);
             return -1;
         }
         else if (temp < POSITIVE_MAX && newPrice >= previousClosePrice && temp > previousRsiPadded) {
-            //System.out.println("9");
+            System.out.println("9");
             explanation = "RSI of " + Formatter.formatDecimal(temp) + " previousRsiValue:" + previousRsiValue + " previousRsiPadded:" + previousRsiPadded;
             return 1;
         }
         else if (temp > NEGATIVE_MIN && temp < previousRsiValue) {
-            //System.out.println("10");
+            System.out.println("10");
             explanation = "RSI of " + Formatter.formatDecimal(temp);
             return -1;
         }
         else if (temp > NEGATIVE_MAX && hasActiveTrade) {
-            //System.out.println("11");
+            System.out.println("11");
             explanation = "RSI of " + Formatter.formatDecimal(temp);
             return -1;
         }
-        else if (temp > 60 && !hasActiveTrade) {
-            //System.out.println("14");
+        else if (temp > 70 && !hasActiveTrade) {
+            System.out.println("14");
             explanation = "RSI of " + Formatter.formatDecimal(temp);
             return 1;
         }
         else if (temp < (previousRsiValue-10)) {
+            System.out.println("88");
             return -1;
         }
         explanation = "";
