@@ -19,7 +19,7 @@ public interface Indicator {
     void init(List<Double> closingPrices);
 
     //Used to update value with latest closed candle closing price
-    void update(double newPrice, double openPrice, double previousClosePrice, double previousRsi, double previousOpenPrice);
+    void update(double newPrice, double openPrice, double previousClosePrice, double previousRsi, double previousDbb, double previousOpenPrice);
 
     //Used to check for buy signal
     int check(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice, boolean hasActiveTrade, Trade activeTrade);

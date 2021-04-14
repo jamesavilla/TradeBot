@@ -37,6 +37,7 @@ public class Currency {
     private double currentOpenPrice;
     private double previousClosePrice;
     private double previousRSI;
+    private double previousDBB;
     private double previousOpenPrice;
     private double previousHighPrice;
 
@@ -94,7 +95,7 @@ public class Currency {
 
             if (newTime > candleTime) {
                 //System.out.println("CANDLE " + response);
-                accept(new PriceBean(candleTime, newPrice, currentOpenPrice, previousClosePrice, 0, previousOpenPrice, previousHighPrice, true));
+                accept(new PriceBean(candleTime, newPrice, currentOpenPrice, previousClosePrice, 0, 0, previousOpenPrice, previousHighPrice, true));
                 candleTime += 300000L;
                 setCurrentOpenPrice.set(true);
                 previousClosePrice = newPrice;
@@ -103,7 +104,7 @@ public class Currency {
 
             //System.out.println(String.format("%s,%s,%s,%s,%s",new Date(candleTime),newPrice,currentPrice,currentOpenPrice,previousClosePrice));
 
-            accept(new PriceBean(newTime, newPrice, currentOpenPrice, previousClosePrice, 0, previousOpenPrice, previousHighPrice));
+            accept(new PriceBean(newTime, newPrice, currentOpenPrice, previousClosePrice, 0, 0, previousOpenPrice, previousHighPrice));
         });
         System.out.println("---SETUP DONE FOR " + this);
     }
@@ -168,10 +169,16 @@ public class Currency {
 
         if (bean.isClosing()) {
             Optional<Indicator> maybeRsiIndicator = indicators.stream().filter(indicator -> indicator.getName().equals("RSI")).findFirst();
+            Optional<Indicator> maybeDbbIndicator = indicators.stream().filter(indicator -> indicator.getName().equals("DBB")).findFirst();
             if(maybeRsiIndicator.isPresent()) {
                 Indicator rsiIndicator = maybeRsiIndicator.get();
                 previousRSI = rsiIndicator.get();
                 bean.setPreviousRsi(previousRSI);
+            }
+            if(maybeDbbIndicator.isPresent()) {
+                Indicator dbbIndicator = maybeDbbIndicator.get();
+                previousDBB = dbbIndicator.get();
+                bean.setPreviousDbb(previousDBB);
             }
             //System.out.println(new Date(currentTime) + " " + currentPrice + " " + previousClosePrice + " " + currentOpenPrice + " " + previousRSI);
 
@@ -181,7 +188,7 @@ public class Currency {
 //            }
 
             indicators.forEach(indicator -> {
-                indicator.update(bean.getPrice(), bean.getOpenPrice(), bean.getPreviousClosePrice(), bean.getPreviousRsi(), bean.getPreviousOpenPrice());
+                indicator.update(bean.getPrice(), bean.getOpenPrice(), bean.getPreviousClosePrice(), bean.getPreviousRsi(), bean.getPreviousDbb(), bean.getPreviousOpenPrice());
             });
             if (Mode.get().equals(Mode.BACKTESTING)) {
                 appendLogLine(system.Formatter.formatDate(currentTime) + "  " + toString());

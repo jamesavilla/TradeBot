@@ -52,12 +52,12 @@ public class EMA implements Indicator {
         if (historyNeeded) EMAhistory.add(currentEMA);
         //Dont use latest unclosed candle;
         for (int i = period; i < closingPrices.size() - 1; i++) {
-            update(closingPrices.get(i), 0, 0, 0, 0);
+            update(closingPrices.get(i), 0, 0, 0, 0, 0);
         }
     }
 
     @Override
-    public void update(double newPrice, double openPrice, double previousClosePrice, double previousRsi, double previousOpenPrice) {
+    public void update(double newPrice, double openPrice, double previousClosePrice, double previousRsi, double previousDbb, double previousOpenPrice) {
         // EMA = (Close - EMA(previousBar)) * multiplier + EMA(previousBar)
         currentEMA = (newPrice - currentEMA) * multiplier + currentEMA;
 

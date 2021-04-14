@@ -46,7 +46,7 @@ public class RSI implements Indicator {
 
         //Dont use latest unclosed value
         for (int i = period + 1; i < closingPrices.size() - 1; i++) {
-            update(closingPrices.get(i), 0, 0, 0, 0);
+            update(closingPrices.get(i), 0, 0, 0, 0, 0);
         }
     }
 
@@ -74,7 +74,7 @@ public class RSI implements Indicator {
     }
 
     @Override
-    public void update(double newPrice, double openPrice, double previousClosePrice, double previousRsi, double previousOpenPrice) {
+    public void update(double newPrice, double openPrice, double previousClosePrice, double previousRsi, double previousDbb, double previousOpenPrice) {
         previousRsiValue = previousRsi;
         double change = newPrice - prevClose;
         if (change > 0) {

@@ -11,25 +11,28 @@ public class PriceBean {
     private double openPrice;
     private double previousClosePrice;
     private double previousRsi;
+    private double previousDbb;
     private double previousOpenPrice;
     private double previousHighPrice;
 
-    public PriceBean(long timestamp, double price, double openPrice, double previousClosePrice, double previousRsi, double previousOpenPrice, double previousHighPrice) {
+    public PriceBean(long timestamp, double price, double openPrice, double previousClosePrice, double previousRsi, double previousDbb, double previousOpenPrice, double previousHighPrice) {
         this.price = price;
         this.openPrice = openPrice;
         this.previousClosePrice = previousClosePrice;
         this.previousRsi = previousRsi;
+        this.previousDbb = previousDbb;
         this.previousOpenPrice = previousOpenPrice;
         this.previousHighPrice = previousHighPrice;
         this.timestamp = timestamp;
         this.closing = false;
     }
 
-    public PriceBean(long timestamp, double price, double openPrice, double previousClosePrice, double previousRsi, double previousOpenPrice, double previousHighPrice, boolean closing) {
+    public PriceBean(long timestamp, double price, double openPrice, double previousClosePrice, double previousRsi, double previousDbb, double previousOpenPrice, double previousHighPrice, boolean closing) {
         this.price = price;
         this.openPrice = openPrice;
         this.previousClosePrice = previousClosePrice;
         this.previousRsi = previousRsi;
+        this.previousDbb = previousDbb;
         this.previousOpenPrice = previousOpenPrice;
         this.previousHighPrice = previousHighPrice;
         this.timestamp = timestamp;
@@ -66,6 +69,14 @@ public class PriceBean {
 
     public void setPreviousRsi(double previousRsi) {
         this.previousRsi = previousRsi;
+    }
+
+    public double getPreviousDbb() {
+        return previousDbb;
+    }
+
+    public void setPreviousDbb(double previousDbb) {
+        this.previousDbb = previousDbb;
     }
 
     public double getPreviousOpenPrice() {
