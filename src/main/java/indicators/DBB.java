@@ -57,16 +57,15 @@ public class DBB implements Indicator {
         double tempUpperMidBand = tempMidBand + tempStdev;
         double tempLowerMidBand = tempMidBand - tempStdev;
         double tempLowerBand = tempMidBand - tempStdev * 2;
-
-        System.out.println("DBB - newPrice: " + newPrice + " tempLowerBand: " + tempLowerBand + " tempUpperBand: " + tempUpperBand + " previousClosePrice: " + previousClosePrice + " openPrice: " + openPrice + " previousOpenPrice: " + previousOpenPrice);
-
         double previousOpenPricePadded = (previousOpenPrice*0.0025)+previousOpenPrice;
         double previousClosePricePadded = (previousClosePrice*0.0025)+previousClosePrice;
         double openPricePadded = (openPrice*0.0018)+openPrice;
         double activeTradeOpenPrice = hasActiveTrade ? activeTrade.getOpenPrice() : 0;
         double openPriceDrop = openPrice - (openPrice*0.005);
-        double previousOpenToClose = previousClosePrice-previousOpenPrice;
-        double newPricePlusPreviousGap = previousClosePrice+previousOpenToClose;
+        double previousOpenToClose = (previousClosePrice>previousOpenPrice ? previousClosePrice-previousOpenPrice : previousOpenPrice-previousClosePrice)*0.25;
+        double newPricePlusPreviousGap = (previousClosePrice>previousOpenPrice ? previousClosePrice : previousOpenPrice) + previousOpenToClose;
+
+        System.out.println("DBB - newPrice: " + newPrice + " newPricePlusPreviousGap: " + newPricePlusPreviousGap + " tempLowerBand: " + tempLowerBand + " tempUpperBand: " + tempUpperBand + " previousClosePrice: " + previousClosePrice + " openPrice: " + openPrice + " previousOpenPrice: " + previousOpenPrice);
 
         if((previousOpenPrice < tempLowerMidBand && previousClosePrice < tempLowerMidBand) && newPrice > tempLowerBand && newPrice < tempMidBand && newPrice > previousClosePrice && newPrice > previousOpenPricePadded && newPrice > previousClosePricePadded && previousClosePrice > previousOpenPrice && openPrice != activeTradeOpenPrice && newPrice > newPricePlusPreviousGap) {
             System.out.println("1");
@@ -77,7 +76,7 @@ public class DBB implements Indicator {
             return 1;
         }
         // BREAKOUT BUY
-        else if(newPrice > openPrice && newPrice > tempMidBand && newPrice > previousOpenPricePadded && newPrice > previousClosePricePadded && newPrice >= newPricePlusPreviousGap && openPrice != activeTradeOpenPrice) {
+        else if(openPrice > tempUpperMidBand && previousOpenPrice > tempUpperMidBand & newPrice > openPrice && newPrice > tempMidBand && newPrice > previousOpenPricePadded && newPrice > previousClosePricePadded && newPrice > newPricePlusPreviousGap && openPrice != activeTradeOpenPrice) {
             System.out.println("3");
             return 1;
         }

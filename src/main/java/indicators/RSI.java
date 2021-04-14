@@ -123,7 +123,7 @@ public class RSI implements Indicator {
             explanation = "RSI of " + Formatter.formatDecimal(temp);
             return -1;
         }
-        else if (temp > 70 && !hasActiveTrade) {
+        else if (temp > 68 && temp < 75 && !hasActiveTrade) {
             System.out.println("14");
             explanation = "RSI of " + Formatter.formatDecimal(temp);
             return 1;
