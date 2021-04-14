@@ -67,30 +67,30 @@ public class DBB implements Indicator {
 
         System.out.println("DBB - newPrice: " + newPrice + " newPricePlusPreviousGap: " + newPricePlusPreviousGap + " tempLowerBand: " + tempLowerBand + " tempUpperBand: " + tempUpperBand + " previousClosePrice: " + previousClosePrice + " openPrice: " + openPrice + " previousOpenPrice: " + previousOpenPrice);
 
-        if((previousOpenPrice < tempLowerMidBand && previousClosePrice < tempLowerMidBand) && newPrice > tempLowerBand && newPrice < tempMidBand && newPrice > previousClosePrice && newPrice > previousOpenPricePadded && newPrice > previousClosePricePadded && previousClosePrice > previousOpenPrice && openPrice != activeTradeOpenPrice && newPrice > newPricePlusPreviousGap) {
+        if((previousOpenPrice < tempLowerMidBand && previousClosePrice < tempLowerMidBand) && newPrice > tempLowerBand && newPrice < tempMidBand && newPrice > previousClosePrice && newPrice > previousOpenPricePadded && newPrice > previousClosePricePadded && previousClosePrice > previousOpenPrice && openPrice != activeTradeOpenPrice && newPrice > newPricePlusPreviousGap && activeTradeOpenPrice > 0) {
             System.out.println("1");
             return 1;
         }
-        else if(previousClosePrice > tempLowerBand && previousClosePrice < tempLowerMidBand && newPrice > openPrice && newPrice > previousClosePrice && newPrice < tempMidBand && newPrice > openPricePadded && newPrice > previousOpenPricePadded && newPrice > previousClosePricePadded && openPrice != activeTradeOpenPrice && newPrice > newPricePlusPreviousGap) {
+        else if(newPrice < tempLowerMidBand && previousClosePrice > tempLowerBand && previousClosePrice < tempLowerMidBand && newPrice > openPrice && newPrice > previousClosePrice && newPrice < tempMidBand && newPrice > openPricePadded && newPrice > previousOpenPricePadded && newPrice > previousClosePricePadded && openPrice != activeTradeOpenPrice && newPrice > newPricePlusPreviousGap && activeTradeOpenPrice > 0) {
             System.out.println("2");
             return 1;
         }
         // BREAKOUT BUY
-        else if(openPrice > tempUpperMidBand && previousOpenPrice > tempUpperMidBand & newPrice > openPrice && newPrice > tempMidBand && newPrice > previousOpenPricePadded && newPrice > previousClosePricePadded && newPrice > newPricePlusPreviousGap && openPrice != activeTradeOpenPrice) {
+        else if(openPrice > tempUpperMidBand && previousOpenPrice > tempUpperMidBand & newPrice > openPrice && newPrice > tempMidBand && newPrice > previousOpenPricePadded && newPrice > previousClosePricePadded && newPrice > newPricePlusPreviousGap && openPrice != activeTradeOpenPrice && activeTradeOpenPrice > 0) {
             System.out.println("3");
             return 1;
         }
         // BREAKOUT SELL
-        else if (previousClosePrice > tempUpperBand && newPrice < previousOpenPrice && newPrice < openPrice && newPrice < tempUpperBand && openPrice != activeTradeOpenPrice) {
+        else if (previousClosePrice > tempUpperBand && newPrice < previousOpenPrice && newPrice < openPrice && newPrice < tempUpperBand && openPrice != activeTradeOpenPrice && activeTradeOpenPrice == 0) {
             System.out.println("4");
             return -1;
         }
-        else if (openPrice < previousClosePrice && newPrice < previousClosePrice && newPrice < tempLowerBand && newPrice < openPrice && openPrice != activeTradeOpenPrice) {
+        else if (openPrice < previousClosePrice && newPrice < previousClosePrice && newPrice < tempLowerBand && newPrice < openPrice && openPrice != activeTradeOpenPrice && activeTradeOpenPrice == 0) {
             System.out.println("5");
             return -1;
         }
         // IF CANDLE DROPS 1.0% IN A 5 MINUTE CANDLE THEN EXIT
-        else if (openPrice > tempUpperMidBand && newPrice < openPriceDrop && openPrice != activeTradeOpenPrice) {
+        else if (openPrice > tempUpperMidBand && newPrice < openPriceDrop && openPrice != activeTradeOpenPrice && activeTradeOpenPrice == 0) {
             System.out.println("77");
             return -2;
         }
