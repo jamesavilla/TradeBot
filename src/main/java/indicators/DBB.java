@@ -1,4 +1,5 @@
 package indicators;
+import system.Mode;
 import trading.Trade;
 
 import java.util.Date;
@@ -18,34 +19,19 @@ public class DBB implements Indicator {
     private String explanation;
     private SMA sma;
     private double previousDbbValue;
+    private double previousHighValue;
 
     public DBB(List<Double> closingPrices, int period) {
         this.period = period;
         this.sma = new SMA(closingPrices, period);
         previousDbbValue = 0;
+        previousHighValue = 0;
         init(closingPrices);
     }
 
     @Override
     public double get() {
-        if(closingPrice < lowerBand && closingPrice > previousClosingPrice && openingPrice < closingPrice) {
-            //System.out.println("1");
-            return 1;
-        }
-//        else if (lowerBand < closingPrice && closingPrice <= lowerMidBand) {
-//            System.out.println("2");
-//            return -1;
-//        }
-        else if (previousClosingPrice > upperBand && closingPrice < previousClosingPrice) {
-            //System.out.println("3");
-            return -1;
-        }
-
-//        else if (closingPrice < lowerBand) {
-//            //System.out.println("4");
-//            return -1;
-//        }
-        return 0;
+        return upperBand;
     }
 
     @Override
@@ -67,34 +53,43 @@ public class DBB implements Indicator {
         double previousOpenToClose = (previousClosePrice>previousOpenPrice ? previousClosePrice-previousOpenPrice : previousOpenPrice-previousClosePrice)*0.25;
         double newPricePlusPreviousGap = (previousClosePrice>previousOpenPrice ? previousClosePrice : previousOpenPrice) + previousOpenToClose;
         double tempPreviousUpperBand = previousDbbValue;
+        int dbb = 0;
 
-        System.out.println("DBB - newPrice: " + newPrice + " newPricePlusPreviousGap: " + newPricePlusPreviousGap + " tempLowerBand: " + tempLowerBand + " tempUpperBand: " + tempUpperBand + " previousClosePrice: " + previousClosePrice + " openPrice: " + openPrice + " previousOpenPrice: " + previousOpenPrice);
+        if (Mode.get() == Mode.BACKTESTING) {
+            System.out.println("DBB tempPreviousUpperBand: " + tempPreviousUpperBand + " DBB: newPrice: " + newPrice + " newPricePlusPreviousGap: " + newPricePlusPreviousGap + " tempLowerBand: " + tempLowerBand + " tempUpperBand: " + tempUpperBand + " previousClosePrice: " + previousClosePrice + " openPrice: " + openPrice + " previousOpenPrice: " + previousOpenPrice + " previousHighValue: " + previousHighValue);
+        }
 
         if((previousOpenPrice < tempLowerMidBand && previousClosePrice < tempLowerMidBand) && newPrice > tempLowerBand && newPrice < tempMidBand && newPrice > previousClosePrice && newPrice > previousOpenPricePadded && newPrice > previousClosePricePadded && previousClosePrice > previousOpenPrice && openPrice != activeTradeOpenPrice && newPrice > newPricePlusPreviousGap && !hasActiveTrade) {
-            System.out.println("1");
+            dbb = 1;
+            if (Mode.get() == Mode.BACKTESTING) { System.out.println("DBB: " + dbb); }
             return 1;
         }
         else if(previousClosePrice > tempLowerBand && previousClosePrice < tempLowerMidBand && newPrice > openPrice && newPrice > previousClosePrice && newPrice < tempLowerMidBand && newPrice > openPricePadded && newPrice > previousOpenPricePadded && newPrice > previousClosePricePadded && openPrice != activeTradeOpenPrice && newPrice > newPricePlusPreviousGap && !hasActiveTrade) {
-            System.out.println("2");
+            dbb = 2;
+            if (Mode.get() == Mode.BACKTESTING) { System.out.println("DBB: " + dbb); }
             return 1;
         }
         // BREAKOUT BUY
-        else if(openPrice > tempUpperMidBand && previousOpenPrice > tempUpperMidBand & newPrice > openPrice && newPrice > tempMidBand && newPrice > previousOpenPricePadded && newPrice > previousClosePricePadded && newPrice > newPricePlusPreviousGap && openPrice != activeTradeOpenPrice && !hasActiveTrade) {
-            System.out.println("3");
+        else if(openPrice > tempUpperMidBand && previousOpenPrice > tempUpperMidBand & newPrice > openPrice && newPrice > tempMidBand && newPrice > previousOpenPricePadded && newPrice > previousClosePricePadded && newPrice > newPricePlusPreviousGap && openPrice != activeTradeOpenPrice && !hasActiveTrade && newPrice > previousHighValue) {
+            dbb = 3;
+            if (Mode.get() == Mode.BACKTESTING) { System.out.println("DBB: " + dbb); }
             return 1;
         }
         // BREAKOUT SELL
         else if (previousClosePrice > tempPreviousUpperBand && newPrice < previousOpenPrice && newPrice < openPrice && newPrice < tempUpperBand && openPrice != activeTradeOpenPrice && hasActiveTrade) {
-            System.out.println("4");
+            dbb = 4;
+            if (Mode.get() == Mode.BACKTESTING) { System.out.println("DBB: " + dbb); }
             return -1;
         }
         else if (newPrice < previousClosePrice && newPrice < tempLowerBand && newPrice < openPrice && openPrice != activeTradeOpenPrice && hasActiveTrade) {
-            System.out.println("5");
+            dbb = 5;
+            if (Mode.get() == Mode.BACKTESTING) { System.out.println("DBB: " + dbb); }
             return -1;
         }
         // IF CANDLE DROPS 1.0% IN A 5 MINUTE CANDLE THEN EXIT
-        else if (openPrice > tempUpperMidBand && newPrice < openPriceDrop && openPrice != activeTradeOpenPrice && hasActiveTrade) {
-            System.out.println("77");
+        else if (openPrice > tempUpperMidBand && newPrice < openPriceDrop && openPrice != activeTradeOpenPrice && hasActiveTrade && newPrice < tempUpperBand) {
+            dbb = 6;
+            if (Mode.get() == Mode.BACKTESTING) { System.out.println("DBB: " + dbb); }
             return -2;
         }
 
@@ -116,11 +111,11 @@ public class DBB implements Indicator {
     }
 
     @Override
-    public void update(double newPrice, double openPrice, double previousClosePrice, double previousRsi, double previousDbb, double previousOpenPrice) {
+    public void update(double newPrice, double openPrice, double previousClosePrice, double previousRsi, double previousDbb, double previousOpenPrice, double previousHighPrice) {
         closingPrice = newPrice;
         openingPrice = openPrice;
         previousClosingPrice = previousClosePrice;
-        sma.update(newPrice, openPrice, previousClosePrice, previousRsi, previousDbb, previousOpenPrice);
+        sma.update(newPrice, openPrice, previousClosePrice, previousRsi, previousDbb, previousOpenPrice, previousHighPrice);
         standardDeviation = sma.standardDeviation();
         middleBand = sma.get();
         upperBand = middleBand + standardDeviation*2;
@@ -128,6 +123,7 @@ public class DBB implements Indicator {
         lowerMidBand = middleBand - standardDeviation;
         lowerBand = middleBand - standardDeviation*2;
         previousDbbValue = previousDbb;
+        previousHighValue = previousHighPrice;
     }
 
     @Override

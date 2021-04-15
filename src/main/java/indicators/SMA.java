@@ -42,7 +42,7 @@ public class SMA implements Indicator {
     }
 
     @Override
-    public void update(double newPrice, double openPrice, double previousClosePrice, double previousRsi, double previousDbb, double previousOpenPrice) {
+    public void update(double newPrice, double openPrice, double previousClosePrice, double previousRsi, double previousDbb, double previousOpenPrice, double previousHighPrice) {
         currentSum -= prices.get(0);
         prices.removeFirst();
         prices.add(newPrice);

@@ -40,13 +40,15 @@ public final class Live {
             //TODO: This try block doesn't work
             try {
                 final List<String> strings = Files.readAllLines(credentialsFile.toPath());
-                if (!strings.get(0).matches("\\*+")) {
+                //if (!strings.get(0).matches("\\*+")) {
+                if (1 == 1) {
                     localAccount = new LocalAccount(strings.get(0), strings.get(1));
                     fileFailed = false;
                 } else {
                     System.out.println("---credentials.txt has not been set up");
                 }
             } catch (Exception e) {
+                System.out.println(e.getMessage());
                 System.out.println("---Failed to use credentials in credentials.txt");
             }
         } else {

@@ -87,6 +87,14 @@ public class PriceBean {
         this.previousOpenPrice = previousOpenPrice;
     }
 
+    public double getPreviousHighPrice() {
+        return previousHighPrice;
+    }
+
+    public void setPreviousHighPrice(double previousHighPrice) {
+        this.previousHighPrice = previousHighPrice;
+    }
+
     public String getDate() {
         return Formatter.formatDate((timestamp));
     }

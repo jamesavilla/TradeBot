@@ -40,6 +40,7 @@ public class Currency {
     private double previousDBB;
     private double previousOpenPrice;
     private double previousHighPrice;
+    private double currentHighPrice;
 
     //Backtesting data
     private final StringBuilder log = new StringBuilder();
@@ -77,7 +78,7 @@ public class Currency {
             double newPrice = Double.parseDouble(response.getPrice());
             long newTime = response.getEventTime();
 
-            if(newPrice > previousHighPrice) {
+            if (newPrice > previousHighPrice) {
                 previousHighPrice = newPrice;
             }
 
@@ -86,12 +87,10 @@ public class Currency {
                 return;
             }
 
-            if(setCurrentOpenPrice.get()) {
+            if (setCurrentOpenPrice.get()) {
                 currentOpenPrice = newPrice;
                 setCurrentOpenPrice.set(false);
             }
-
-            //System.out.println("CANDLE " + response);
 
             if (newTime > candleTime) {
                 //System.out.println("CANDLE " + response);
@@ -102,6 +101,7 @@ public class Currency {
                 previousOpenPrice = currentOpenPrice;
             }
 
+            //System.out.println("CANDLE " + response);
             //System.out.println(String.format("%s,%s,%s,%s,%s",new Date(candleTime),newPrice,currentPrice,currentOpenPrice,previousClosePrice));
 
             accept(new PriceBean(newTime, newPrice, currentOpenPrice, previousClosePrice, 0, 0, previousOpenPrice, previousHighPrice));
@@ -133,21 +133,32 @@ public class Currency {
             indicators.add(new DBB(closingPrices, 20));
             while (bean != null) {
 
-                if(setCurrentOpenPrice.get()) {
+                if (setCurrentOpenPrice.get()) {
                     currentOpenPrice = bean.getPrice();
                     setCurrentOpenPrice.set(false);
+                    currentHighPrice = currentOpenPrice;
                 }
 
                 bean.setOpenPrice(currentOpenPrice);
                 bean.setPreviousClosePrice(previousClosePrice);
+                bean.setPreviousHighPrice(previousHighPrice);
                 accept(bean);
 
-                if(bean.isClosing()) {
+                if (bean.getPrice() > currentHighPrice) {
+                    currentHighPrice = bean.getPrice();
+                }
+
+                if (bean.isClosing()) {
                     setCurrentOpenPrice.set(true);
                     previousClosePrice = bean.getPrice();
                     previousOpenPrice = currentOpenPrice;
+                    previousHighPrice = currentHighPrice;
                 }
-                System.out.println(bean.dumpAll());
+
+                if (Mode.get() == Mode.BACKTESTING) {
+                    System.out.println("\n" + bean.dumpAll());
+                }
+
                 bean = reader.readPrice();
             }
 
@@ -167,28 +178,24 @@ public class Currency {
         currentOpenPrice = bean.getOpenPrice();
         previousClosePrice = bean.getPreviousClosePrice();
 
+        //System.out.println(new Date(currentTime) + " currentPrice: " + currentPrice + " previousClosePrice: " + previousClosePrice + " currentOpenPrice: " + currentOpenPrice + " previousRSI: " + previousRSI + " previousDBB: " + previousDBB);
+
         if (bean.isClosing()) {
             Optional<Indicator> maybeRsiIndicator = indicators.stream().filter(indicator -> indicator.getName().equals("RSI")).findFirst();
             Optional<Indicator> maybeDbbIndicator = indicators.stream().filter(indicator -> indicator.getName().equals("DBB")).findFirst();
-            if(maybeRsiIndicator.isPresent()) {
+            if (maybeRsiIndicator.isPresent()) {
                 Indicator rsiIndicator = maybeRsiIndicator.get();
                 previousRSI = rsiIndicator.get();
                 bean.setPreviousRsi(previousRSI);
             }
-            if(maybeDbbIndicator.isPresent()) {
+            if (maybeDbbIndicator.isPresent()) {
                 Indicator dbbIndicator = maybeDbbIndicator.get();
                 previousDBB = dbbIndicator.get();
                 bean.setPreviousDbb(previousDBB);
             }
-            //System.out.println(new Date(currentTime) + " " + currentPrice + " " + previousClosePrice + " " + currentOpenPrice + " " + previousRSI);
-
-//            Optional<Indicator> maybeDbbIndicator = indicators.stream().filter(indicator -> indicator.getName().equals("DBB")).findFirst();
-//            if(maybeDbbIndicator.isPresent()) {
-//                System.out.println(maybeDbbIndicator.get().get());
-//            }
 
             indicators.forEach(indicator -> {
-                indicator.update(bean.getPrice(), bean.getOpenPrice(), bean.getPreviousClosePrice(), bean.getPreviousRsi(), bean.getPreviousDbb(), bean.getPreviousOpenPrice());
+                indicator.update(bean.getPrice(), bean.getOpenPrice(), bean.getPreviousClosePrice(), bean.getPreviousRsi(), bean.getPreviousDbb(), bean.getPreviousOpenPrice(), bean.getPreviousHighPrice());
             });
             if (Mode.get().equals(Mode.BACKTESTING)) {
                 appendLogLine(system.Formatter.formatDate(currentTime) + "  " + toString());
@@ -199,9 +206,10 @@ public class Currency {
             currentlyCalculating.set(true);
             //We can disable the strategy and trading logic to only check indicator and price accuracy
             int confluence = check();
-            System.out.println("confluence " + confluence + "\n");
+
             if (hasActiveTrade()) { //We only allow one active trade per currency, this means we only need to do one of the following:
-                activeTrade.update(currentPrice, confluence);//Update the active trade stop-loss and high values
+                boolean sameCandle = currentOpenPrice == getActiveTrade().getOpenPrice();
+                activeTrade.update(currentPrice, confluence, sameCandle); //Update the active trade stop-loss and high values
             } else {
                 if (confluence >= CONFLUENCE) {
                     BuySell.open(Currency.this, "Trade opened due to:\n " + getExplanations());

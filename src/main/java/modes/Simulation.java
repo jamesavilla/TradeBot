@@ -2,9 +2,9 @@ package modes;
 
 import com.binance.api.client.exception.BinanceApiException;
 import system.ConfigSetup;
-import trading.LocalAccount;
 import trading.BuySell;
 import trading.Currency;
+import trading.LocalAccount;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +37,7 @@ public final class Simulation {
             } catch (BinanceApiException e) {
                 System.out.println("---Could not add " + arg + ConfigSetup.getFiat());
                 System.out.println(e.getMessage());
+                e.printStackTrace();
             }
         }
     }

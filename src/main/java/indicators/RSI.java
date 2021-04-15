@@ -1,6 +1,7 @@
 package indicators;
 
 import system.Formatter;
+import system.Mode;
 import trading.Trade;
 
 import java.util.Date;
@@ -46,7 +47,7 @@ public class RSI implements Indicator {
 
         //Dont use latest unclosed value
         for (int i = period + 1; i < closingPrices.size() - 1; i++) {
-            update(closingPrices.get(i), 0, 0, 0, 0, 0);
+            update(closingPrices.get(i), 0, 0, 0, 0, 0, 0);
         }
     }
 
@@ -74,7 +75,7 @@ public class RSI implements Indicator {
     }
 
     @Override
-    public void update(double newPrice, double openPrice, double previousClosePrice, double previousRsi, double previousDbb, double previousOpenPrice) {
+    public void update(double newPrice, double openPrice, double previousClosePrice, double previousRsi, double previousDbb, double previousOpenPrice, double previousHighPrice) {
         previousRsiValue = previousRsi;
         double change = newPrice - prevClose;
         if (change > 0) {
@@ -90,48 +91,60 @@ public class RSI implements Indicator {
     @Override
     public int check(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice, boolean hasActiveTrade, Trade activeTrade) {
         double temp = getTemp(newPrice, openPrice, previousClosePrice, previousOpenPrice, hasActiveTrade, activeTrade);
-        //System.out.println("RSI - temp: " + temp + " newPrice: " + newPrice + " POSITIVE_MAX: " + POSITIVE_MAX + " hasActiveTrade: " + hasActiveTrade);
-        //System.out.println(" activeTrade: " + activeTrade);
         double previousRsiPadded = (previousRsiValue*0.05)+previousRsiValue;
+        int rsi = 0;
+
+        if (Mode.get() == Mode.BACKTESTING) {
+            System.out.println("RSI temp: " + temp + " newPrice: " + newPrice + " POSITIVE_MAX: " + POSITIVE_MAX + " hasActiveTrade: " + hasActiveTrade);
+        }
 
         if(previousClosePrice == 0 || openPrice == 0) {
-            System.out.println("6");
+            rsi = 7;
+            if (Mode.get() == Mode.BACKTESTING) { System.out.println("RSI: " + rsi); }
             return 0;
         }
         else if (temp < POSITIVE_MIN) {
-            System.out.println("7");
+            rsi = 8;
+            if (Mode.get() == Mode.BACKTESTING) { System.out.println("RSI: " + rsi); }
             explanation = "RSI of " + Formatter.formatDecimal(temp);
             return 2;
         }
         else if (temp < POSITIVE_MAX && newPrice < openPrice) {
-            System.out.println("8");
+            rsi = 9;
+            if (Mode.get() == Mode.BACKTESTING) { System.out.println("RSI: " + rsi); }
             explanation = "RSI of " + Formatter.formatDecimal(temp);
             return -1;
         }
         else if (temp < POSITIVE_MAX && newPrice >= previousClosePrice && temp > previousRsiPadded) {
-            System.out.println("9");
+            rsi = 10;
+            if (Mode.get() == Mode.BACKTESTING) { System.out.println("RSI: " + rsi); }
             explanation = "RSI of " + Formatter.formatDecimal(temp) + " previousRsiValue:" + previousRsiValue + " previousRsiPadded:" + previousRsiPadded;
             return 1;
         }
         else if (temp > NEGATIVE_MIN && temp < previousRsiValue) {
-            System.out.println("10");
+            rsi = 11;
+            if (Mode.get() == Mode.BACKTESTING) { System.out.println("RSI: " + rsi); }
             explanation = "RSI of " + Formatter.formatDecimal(temp);
             return -1;
         }
         else if (temp > NEGATIVE_MAX && hasActiveTrade) {
-            System.out.println("11");
+            rsi = 12;
+            if (Mode.get() == Mode.BACKTESTING) { System.out.println("RSI: " + rsi); }
             explanation = "RSI of " + Formatter.formatDecimal(temp);
             return -1;
         }
-        else if (temp > 68 && temp < 75 && !hasActiveTrade) {
-            System.out.println("14");
+        else if (temp > 68 && temp < 80 && !hasActiveTrade) {
+            rsi = 13;
+            if (Mode.get() == Mode.BACKTESTING) { System.out.println("RSI: " + rsi); }
             explanation = "RSI of " + Formatter.formatDecimal(temp);
             return 1;
         }
         else if (temp < (previousRsiValue-10)) {
-            System.out.println("88");
+            rsi = 14;
+            if (Mode.get() == Mode.BACKTESTING) { System.out.println("RSI: " + rsi); }
             return -1;
         }
+
         explanation = "";
         return 0;
     }

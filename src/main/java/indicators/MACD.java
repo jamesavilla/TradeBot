@@ -71,11 +71,11 @@ public class MACD implements Indicator {
     }
 
     @Override
-    public void update(double newPrice, double openPrice, double previousClosePrice, double previousRsi, double previousDbb, double previousOpenPrice) {
+    public void update(double newPrice, double openPrice, double previousClosePrice, double previousRsi, double previousDbb, double previousOpenPrice, double previousHighPrice) {
         //Updating the EMA values before updating MACD and Signal line.
         lastTick = get();
-        shortEMA.update(newPrice, openPrice, previousClosePrice, previousRsi, previousDbb, previousOpenPrice);
-        longEMA.update(newPrice, openPrice, previousClosePrice, previousRsi, previousDbb, previousOpenPrice);
+        shortEMA.update(newPrice, openPrice, previousClosePrice, previousRsi, previousDbb, previousOpenPrice, previousHighPrice);
+        longEMA.update(newPrice, openPrice, previousClosePrice, previousRsi, previousDbb, previousOpenPrice, previousHighPrice);
         currentMACD = shortEMA.get() - longEMA.get();
         currentSignal = currentMACD * multiplier + currentSignal * (1 - multiplier);
     }

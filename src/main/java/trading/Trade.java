@@ -106,7 +106,7 @@ public class Trade {
     }
 
     //Checks if there is a new highest price for the trade or if the trade has dropped below the stoploss.
-    public void update(double newPrice, int confluence) {
+    public void update(double newPrice, int confluence, boolean sameCandle) {
         if(newPrice < low) low = newPrice;
         if (newPrice > high) high = newPrice;
 
@@ -116,7 +116,7 @@ public class Trade {
             return;
         }
 
-        if (newPrice < high * (1 - TRAILING_SL)) {
+        if (newPrice < high * (1 - TRAILING_SL) && !sameCandle) {
             explanation += "Closed due to: Trailing SL" + "\n";
             BuySell.close(this);
             return;
