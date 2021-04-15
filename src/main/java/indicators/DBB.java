@@ -49,7 +49,7 @@ public class DBB implements Indicator {
         double previousClosePricePadded = (previousClosePrice*0.0025)+previousClosePrice;
         double openPricePadded = (openPrice*0.0018)+openPrice;
         double activeTradeOpenPrice = hasActiveTrade ? activeTrade.getOpenPrice() : 0;
-        double openPriceDrop = openPrice - (openPrice*0.005);
+        double openPriceDrop = openPrice - (openPrice*0.01);
         double previousOpenToClose = (previousClosePrice>previousOpenPrice ? previousClosePrice-previousOpenPrice : previousOpenPrice-previousClosePrice)*0.25;
         double newPricePlusPreviousGap = (previousClosePrice>previousOpenPrice ? previousClosePrice : previousOpenPrice) + previousOpenToClose;
         double tempPreviousUpperBand = previousDbbValue;
