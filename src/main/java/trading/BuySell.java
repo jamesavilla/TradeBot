@@ -76,6 +76,9 @@ public class BuySell {
                 double qty = Double.parseDouble(fill.getQty());
                 fillsQty += qty;
                 fillsPrice += qty * Double.parseDouble(fill.getPrice());
+
+                System.out.println("Open Qty: " + fill.getQty());
+                System.out.println("Open Commission: " + fill.getCommission());
             }
             System.out.println("Got filled for " + BigDecimal.valueOf(fillsQty).toString()
                     + " at " + Formatter.formatDate(order.getTransactTime())
@@ -127,6 +130,9 @@ public class BuySell {
                 double qty = Double.parseDouble(fill.getQty());
                 fillsQty += qty;
                 fillsPrice += qty * Double.parseDouble(fill.getPrice());
+
+                System.out.println("Close Qty: " + fill.getQty());
+                System.out.println("Close Commission: " + fill.getCommission());
             }
             System.out.println("Got filled for " + BigDecimal.valueOf(fillsQty).toString()
                     + " at " + Formatter.formatDate(order.getTransactTime())

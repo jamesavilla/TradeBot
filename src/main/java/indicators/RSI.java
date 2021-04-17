@@ -93,55 +93,56 @@ public class RSI implements Indicator {
         double temp = getTemp(newPrice, openPrice, previousClosePrice, previousOpenPrice, hasActiveTrade, activeTrade);
         double previousRsiPadded = (previousRsiValue*0.05)+previousRsiValue;
         int rsi = 0;
+        boolean debugging = Mode.get() == Mode.BACKTESTING;
 
-        if (Mode.get() == Mode.BACKTESTING) {
+        if (debugging) {
             System.out.println("RSI temp: " + temp + " newPrice: " + newPrice + " POSITIVE_MAX: " + POSITIVE_MAX + " hasActiveTrade: " + hasActiveTrade);
         }
 
         if(previousClosePrice == 0 || openPrice == 0) {
-            rsi = 7;
-            if (Mode.get() == Mode.BACKTESTING) { System.out.println("RSI: " + rsi); }
+            rsi = 8;
+            if (debugging) { System.out.println("RSI: " + rsi); }
             return 0;
         }
         else if (temp < POSITIVE_MIN) {
-            rsi = 8;
-            if (Mode.get() == Mode.BACKTESTING) { System.out.println("RSI: " + rsi); }
+            rsi = 9;
+            if (debugging) { System.out.println("RSI: " + rsi); }
             explanation = "RSI of " + Formatter.formatDecimal(temp);
             return 2;
         }
         else if (temp < POSITIVE_MAX && newPrice < openPrice) {
-            rsi = 9;
-            if (Mode.get() == Mode.BACKTESTING) { System.out.println("RSI: " + rsi); }
+            rsi = 10;
+            if (debugging) { System.out.println("RSI: " + rsi); }
             explanation = "RSI of " + Formatter.formatDecimal(temp);
             return -1;
         }
         else if (temp < POSITIVE_MAX && newPrice >= previousClosePrice && temp > previousRsiPadded) {
-            rsi = 10;
-            if (Mode.get() == Mode.BACKTESTING) { System.out.println("RSI: " + rsi); }
+            rsi = 11;
+            if (debugging) { System.out.println("RSI: " + rsi); }
             explanation = "RSI of " + Formatter.formatDecimal(temp) + " previousRsiValue:" + previousRsiValue + " previousRsiPadded:" + previousRsiPadded;
             return 1;
         }
         else if (temp > NEGATIVE_MIN && temp < previousRsiValue) {
-            rsi = 11;
-            if (Mode.get() == Mode.BACKTESTING) { System.out.println("RSI: " + rsi); }
+            rsi = 12;
+            if (debugging) { System.out.println("RSI: " + rsi); }
             explanation = "RSI of " + Formatter.formatDecimal(temp);
             return -1;
         }
         else if (temp > NEGATIVE_MAX && hasActiveTrade) {
-            rsi = 12;
-            if (Mode.get() == Mode.BACKTESTING) { System.out.println("RSI: " + rsi); }
+            rsi = 13;
+            if (debugging) { System.out.println("RSI: " + rsi); }
             explanation = "RSI of " + Formatter.formatDecimal(temp);
             return -1;
         }
-        else if (temp > 68 && temp < 80 && !hasActiveTrade) {
-            rsi = 13;
-            if (Mode.get() == Mode.BACKTESTING) { System.out.println("RSI: " + rsi); }
+        else if (temp > 68 && temp < 78 && !hasActiveTrade) {
+            rsi = 14;
+            if (debugging) { System.out.println("RSI: " + rsi); }
             explanation = "RSI of " + Formatter.formatDecimal(temp);
             return 1;
         }
         else if (temp < (previousRsiValue-10)) {
-            rsi = 14;
-            if (Mode.get() == Mode.BACKTESTING) { System.out.println("RSI: " + rsi); }
+            rsi = 15;
+            if (debugging) { System.out.println("RSI: " + rsi); }
             return -1;
         }
 

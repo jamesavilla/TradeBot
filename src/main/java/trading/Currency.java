@@ -102,7 +102,7 @@ public class Currency {
             }
 
             //System.out.println("CANDLE " + response);
-            //System.out.println(String.format("%s,%s,%s,%s,%s",new Date(candleTime),newPrice,currentPrice,currentOpenPrice,previousClosePrice));
+            //System.out.println(String.format("%s,%s,%s,%s,%s", new Date(candleTime), newPrice, currentOpenPrice, previousClosePrice, previousOpenPrice));
 
             accept(new PriceBean(newTime, newPrice, currentOpenPrice, previousClosePrice, 0, 0, previousOpenPrice, previousHighPrice));
         });

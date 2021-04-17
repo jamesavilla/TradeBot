@@ -20,6 +20,7 @@ public class Trade {
     private double openPrice;
     private long closeTime;
     private String explanation;
+    private boolean brokeUpperDbbBand = false;
 
     public Trade(Currency currency, double entryPrice, double amount, String explanation, double openPrice) {
         this.currency = currency;
@@ -90,6 +91,14 @@ public class Trade {
 
     public boolean isClosed() {
         return closePrice != -1;
+    }
+
+    public void setBrokeUpperDbbBand(boolean brokeUpperDbbBand) {
+        this.brokeUpperDbbBand = brokeUpperDbbBand;
+    }
+
+    public boolean getBrokeUpperDbbBand() {
+        return brokeUpperDbbBand;
     }
 
     //Allows user to get the profit percentages on one specific trade.
