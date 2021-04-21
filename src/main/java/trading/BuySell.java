@@ -74,7 +74,7 @@ public class BuySell {
             double fillsPrice = 0;
             for (com.binance.api.client.domain.account.Trade fill : order.getFills()) {
                 double qty = Double.parseDouble(fill.getQty());
-                fillsQty += qty;
+                fillsQty += qty - Double.parseDouble(fill.getCommission());
                 fillsPrice += qty * Double.parseDouble(fill.getPrice());
 
                 System.out.println("Open Qty: " + fill.getQty());
@@ -180,6 +180,7 @@ public class BuySell {
 
     //TODO: Implement limit ordering
     //TODO: Fix local and server wallet mismatch that cant be refreshed
+    @SneakyThrows
     public static NewOrderResponse placeOrder(Currency currency, double amount, boolean buy) {
         System.out.println("\n---Placing a " + (buy ? "buy" : "sell") + " market order for " + currency.getPair());
         BigDecimal originalDecimal = BigDecimal.valueOf(amount);
@@ -229,11 +230,18 @@ public class BuySell {
         } catch (BinanceApiException e) {
             System.out.println("---Failed to buy " + convertedAmount + " " + currency.getPair());
             System.out.println(e.getMessage());
+            if(Mode.get().equals(Mode.SIMULATION) || Mode.get().equals(Mode.LIVE)) {
+                final String message = e.getMessage();
+                SlackMessage slackMessage = SlackMessage.builder()
+                        .text(":warning: " + message)
+                        .build();
+                SlackUtilities.sendMessage(slackMessage, getSlackWebhook());
+            }
             return null;
         }
     }
 
-    private static String getSlackWebhook() throws Exception {
+    public static String getSlackWebhook() throws Exception {
         String slackWebhook = "";
         if (credentialsFile.exists()) {
             try {

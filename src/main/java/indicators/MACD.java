@@ -32,6 +32,9 @@ public class MACD implements Indicator {
     }
 
     @Override
+    public void updateAlertSent() {}
+
+    @Override
     public double get() {
         return currentMACD - currentSignal; //Difference between the values.
     }

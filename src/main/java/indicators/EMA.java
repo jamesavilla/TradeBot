@@ -27,6 +27,9 @@ public class EMA implements Indicator {
     }
 
     @Override
+    public void updateAlertSent() {}
+
+    @Override
     public double get() {
         return currentEMA;
     }

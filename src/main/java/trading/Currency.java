@@ -1,5 +1,7 @@
 package trading;
 
+import com.binance.api.client.BinanceApiCallback;
+import com.binance.api.client.domain.event.AggTradeEvent;
 import data.PriceBean;
 import data.PriceReader;
 import com.binance.api.client.BinanceApiWebSocketClient;
@@ -9,9 +11,12 @@ import indicators.DBB;
 import indicators.Indicator;
 import indicators.MACD;
 import indicators.RSI;
+import lombok.SneakyThrows;
 import system.ConfigSetup;
 import system.Formatter;
 import system.Mode;
+import utilities.SlackMessage;
+import utilities.SlackUtilities;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -22,6 +27,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
+
+import static trading.BuySell.getSlackWebhook;
 
 public class Currency {
     public static int CONFLUENCE;
@@ -52,8 +59,6 @@ public class Currency {
     public Currency(String coin) {
         this.pair = coin + ConfigSetup.getFiat();
 
-        AtomicBoolean setCurrentOpenPrice = new AtomicBoolean(false);
-
         //Every currency needs to contain and update our indicators
         List<Candlestick> history = CurrentAPI.get().getCandlestickBars(pair, CandlestickInterval.FIVE_MINUTES);
         List<Double> closingPrices = history.stream().map(candle -> Double.parseDouble(candle.getClose())).collect(Collectors.toList());
@@ -70,43 +75,70 @@ public class Currency {
         previousOpenPrice = Double.parseDouble(history.get(history.size() - 2).getOpen());
         previousHighPrice = Double.parseDouble(history.get(history.size() - 2).getHigh());
 
-        BinanceApiWebSocketClient client = CurrentAPI.getFactory().newWebSocketClient();
-        //We add a websocket listener that automatically updates our values and triggers our strategy or trade logic as needed
-        client.onAggTradeEvent(pair.toLowerCase(), response -> {
-            //Every message and the resulting indicator and strategy calculations is handled concurrently
-            //System.out.println(Thread.currentThread().getId());
-            double newPrice = Double.parseDouble(response.getPrice());
-            long newTime = response.getEventTime();
+        startWebsocket(coin, this.pair);
 
-            if (newPrice > previousHighPrice) {
-                previousHighPrice = newPrice;
-            }
-
-            //We want to toss messages that provide no new information
-            if (currentPrice == newPrice && newTime <= candleTime) {
-                return;
-            }
-
-            if (setCurrentOpenPrice.get()) {
-                currentOpenPrice = newPrice;
-                setCurrentOpenPrice.set(false);
-            }
-
-            if (newTime > candleTime) {
-                //System.out.println("CANDLE " + response);
-                accept(new PriceBean(candleTime, newPrice, currentOpenPrice, previousClosePrice, 0, 0, previousOpenPrice, previousHighPrice, true));
-                candleTime += 300000L;
-                setCurrentOpenPrice.set(true);
-                previousClosePrice = newPrice;
-                previousOpenPrice = currentOpenPrice;
-            }
-
-            //System.out.println("CANDLE " + response);
-            //System.out.println(String.format("%s,%s,%s,%s,%s", new Date(candleTime), newPrice, currentOpenPrice, previousClosePrice, previousOpenPrice));
-
-            accept(new PriceBean(newTime, newPrice, currentOpenPrice, previousClosePrice, 0, 0, previousOpenPrice, previousHighPrice));
-        });
         System.out.println("---SETUP DONE FOR " + this);
+    }
+
+    private void startWebsocket(String coin, String pair) {
+        AtomicBoolean setCurrentOpenPrice = new AtomicBoolean(false);
+        BinanceApiWebSocketClient client = CurrentAPI.getFactory().newWebSocketClient();
+
+        //We add a websocket listener that automatically updates our values and triggers our strategy or trade logic as needed
+        client.onAggTradeEvent(pair.toLowerCase(), new BinanceApiCallback<>() {
+            @Override
+            public void onResponse(final AggTradeEvent response) {
+                //Every message and the resulting indicator and strategy calculations is handled concurrently
+                //System.out.println(Thread.currentThread().getId());
+                double newPrice = Double.parseDouble(response.getPrice());
+                long newTime = response.getEventTime();
+
+                if (newPrice > previousHighPrice) {
+                    previousHighPrice = newPrice;
+                }
+
+                //We want to toss messages that provide no new information
+                if (currentPrice == newPrice && newTime <= candleTime) {
+                    return;
+                }
+
+                if (setCurrentOpenPrice.get()) {
+                    currentOpenPrice = newPrice;
+                    setCurrentOpenPrice.set(false);
+                }
+
+                if (newTime > candleTime) {
+                    //System.out.println("CANDLE " + response);
+                    accept(new PriceBean(candleTime, newPrice, currentOpenPrice, previousClosePrice, 0, 0, previousOpenPrice, previousHighPrice, true));
+                    candleTime += 300000L;
+                    setCurrentOpenPrice.set(true);
+                    previousClosePrice = newPrice;
+                    previousOpenPrice = currentOpenPrice;
+                }
+
+                //System.out.println("CANDLE " + response);
+                //System.out.println(String.format("%s,%s,%s,%s,%s", new Date(candleTime), newPrice, currentOpenPrice, previousClosePrice, previousOpenPrice));
+
+                accept(new PriceBean(newTime, newPrice, currentOpenPrice, previousClosePrice, 0, 0, previousOpenPrice, previousHighPrice));
+            }
+
+            @SneakyThrows
+            @Override
+            public void onFailure(final Throwable cause) {
+                System.err.println("Web socket failed");
+                cause.printStackTrace(System.err);
+
+                if(Mode.get().equals(Mode.SIMULATION) || Mode.get().equals(Mode.LIVE)) {
+                    final String message = cause.getMessage();
+                    SlackMessage slackMessage = SlackMessage.builder()
+                            .text(":warning: " + message)
+                            .build();
+                    SlackUtilities.sendMessage(slackMessage, getSlackWebhook());
+                }
+
+                startWebsocket(coin, pair);
+            }
+        });
     }
 
     //Used for BACKTESTING
@@ -187,6 +219,7 @@ public class Currency {
                 Indicator rsiIndicator = maybeRsiIndicator.get();
                 previousRSI = rsiIndicator.get();
                 bean.setPreviousRsi(previousRSI);
+                rsiIndicator.updateAlertSent();
             }
             if (maybeDbbIndicator.isPresent()) {
                 Indicator dbbIndicator = maybeDbbIndicator.get();
@@ -207,15 +240,20 @@ public class Currency {
             //We can disable the strategy and trading logic to only check indicator and price accuracy
             int confluence = check();
 
-            if (hasActiveTrade()) { //We only allow one active trade per currency, this means we only need to do one of the following:
-                boolean sameCandle = currentOpenPrice == getActiveTrade().getOpenPrice();
-                activeTrade.update(currentPrice, confluence, sameCandle); //Update the active trade stop-loss and high values
-            } else {
-                if (confluence >= CONFLUENCE) {
-                    BuySell.open(Currency.this, "Trade opened due to:\n " + getExplanations());
+            try {
+                if (hasActiveTrade()) { //We only allow one active trade per currency, this means we only need to do one of the following:
+                    boolean sameCandle = currentOpenPrice == getActiveTrade().getOpenPrice();
+                    activeTrade.update(currentPrice, confluence, sameCandle); //Update the active trade stop-loss and high values
+                } else {
+                    if (confluence >= CONFLUENCE) {
+                        BuySell.open(Currency.this, "Trade opened due to:\n " + getExplanations());
+                    }
                 }
+                currentlyCalculating.set(false);
             }
-            currentlyCalculating.set(false);
+            catch (Exception e) {
+                currentlyCalculating.set(false);
+            }
         }
     }
 

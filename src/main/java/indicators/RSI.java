@@ -1,11 +1,15 @@
 package indicators;
 
+import lombok.SneakyThrows;
 import system.Formatter;
 import system.Mode;
 import trading.Trade;
+import utilities.SlackMessage;
+import utilities.SlackUtilities;
 
-import java.util.Date;
 import java.util.List;
+
+import static trading.BuySell.getSlackWebhook;
 
 public class RSI implements Indicator {
 
@@ -19,6 +23,7 @@ public class RSI implements Indicator {
     public static int NEGATIVE_MIN;
     public static int NEGATIVE_MAX;
     private double previousRsiValue;
+    private boolean alertSent;
 
     public RSI(List<Double> closingPrice, int period) {
         avgUp = 0;
@@ -27,6 +32,11 @@ public class RSI implements Indicator {
         explanation = "";
         previousRsiValue = 0;
         init(closingPrice);
+    }
+
+    @Override
+    public void updateAlertSent() {
+        alertSent = false;
     }
 
     @Override
@@ -88,6 +98,7 @@ public class RSI implements Indicator {
         prevClose = newPrice;
     }
 
+    @SneakyThrows
     @Override
     public int check(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice, boolean hasActiveTrade, Trade activeTrade) {
         double temp = getTemp(newPrice, openPrice, previousClosePrice, previousOpenPrice, hasActiveTrade, activeTrade);
@@ -97,6 +108,15 @@ public class RSI implements Indicator {
 
         if (debugging) {
             System.out.println("RSI temp: " + temp + " newPrice: " + newPrice + " POSITIVE_MAX: " + POSITIVE_MAX + " hasActiveTrade: " + hasActiveTrade);
+        }
+
+        if (!alertSent && temp < 27 && !hasActiveTrade && (Mode.get().equals(Mode.LIVE) || Mode.get().equals(Mode.SIMULATION))) {
+            alertSent = true;
+            final String message = newPrice + " rsi of " + temp + "!";
+            SlackMessage slackMessage = SlackMessage.builder()
+                    .text(":warning: " + message)
+                    .build();
+            SlackUtilities.sendMessage(slackMessage, getSlackWebhook());
         }
 
         if(previousClosePrice == 0 || openPrice == 0) {

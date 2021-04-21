@@ -18,6 +18,9 @@ public class SMA implements Indicator {
     }
 
     @Override
+    public void updateAlertSent() {}
+
+    @Override
     public double get() {
         return currentSum / (double) period;
     }

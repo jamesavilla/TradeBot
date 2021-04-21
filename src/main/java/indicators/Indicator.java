@@ -6,6 +6,8 @@ import java.util.List;
 
 public interface Indicator {
 
+    void updateAlertSent();
+
     //Used to get the latest indicator value updated with closed candle
     double get();
 
