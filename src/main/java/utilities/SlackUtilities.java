@@ -1,32 +1,41 @@
 package utilities;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.SneakyThrows;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import system.ConfigSetup;
 
 import java.io.IOException;
 
 public class SlackUtilities {
 
-    public static void sendMessage(SlackMessage message, String slackWebhookUrl) {
-        CloseableHttpClient client = HttpClients.createDefault();
-        HttpPost httpPost = new HttpPost(slackWebhookUrl);
+    @SneakyThrows
+    public static void sendMessage(SlackMessage message) {
+        final String slackWebhookUrl = ConfigSetup.getSlackWebhookUrl();
 
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            String json = objectMapper.writeValueAsString(message);
+        if(slackWebhookUrl.length() > 0) {
+            CloseableHttpClient client = HttpClients.createDefault();
+            HttpPost httpPost = new HttpPost(slackWebhookUrl);
 
-            StringEntity entity = new StringEntity(json);
-            httpPost.setEntity(entity);
-            httpPost.setHeader("Accept", "application/json");
-            httpPost.setHeader("Content-type", "application/json");
+            try {
+                ObjectMapper objectMapper = new ObjectMapper();
+                String json = objectMapper.writeValueAsString(message);
 
-            client.execute(httpPost);
-            client.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+                StringEntity entity = new StringEntity(json);
+                httpPost.setEntity(entity);
+                httpPost.setHeader("Accept", "application/json");
+                httpPost.setHeader("Content-type", "application/json");
+
+                client.execute(httpPost);
+                client.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
+
+
 }

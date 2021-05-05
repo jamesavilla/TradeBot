@@ -84,7 +84,7 @@ public class MACD implements Indicator {
     }
 
     @Override
-    public int check(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice, boolean hasActiveTrade, Trade activeTrade) {
+    public double check(String pair, double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice, boolean hasActiveTrade, Trade activeTrade) {
         double change = (getTemp(newPrice, openPrice, previousClosePrice, previousOpenPrice, hasActiveTrade, activeTrade) - lastTick) / Math.abs(lastTick);
         if (change > MACD.SIGNAL_CHANGE && get() < 0) {
             //System.out.println("12");

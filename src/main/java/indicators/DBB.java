@@ -54,7 +54,7 @@ public class DBB implements Indicator {
         double activeTradeOpenPrice = hasActiveTrade ? activeTrade.getOpenPrice() : 0;
         double openPriceDrop = openPrice - (openPrice*0.01);
         double previousOpenToClose = (previousClosePrice>previousOpenPrice ? previousClosePrice-previousOpenPrice : previousOpenPrice-previousClosePrice)*0.25;
-        double previousUpperPricePlusPreviousGap = ((previousClosePrice>previousOpenPrice ? previousClosePrice : previousOpenPrice) + previousOpenToClose);
+        double previousUpperPricePlusPreviousGap = ((Math.max(previousClosePrice, previousOpenPrice)) + previousOpenToClose);
         double tempPreviousUpperBand = previousDbbValue;
         int dbb = 0;
         boolean debugging = Mode.get() == Mode.BACKTESTING;
@@ -105,7 +105,7 @@ public class DBB implements Indicator {
                 newPrice > previousHighValue) {
             dbb = 3;
             if (debugging) { System.out.println("DBB: " + dbb); }
-            return 1;
+            return 0.5;
         }
         // BREAKOUT SELL
         else if (previousClosePrice > tempPreviousUpperBand &&
@@ -129,7 +129,7 @@ public class DBB implements Indicator {
             if (debugging) { System.out.println("DBB: " + dbb); }
             return -1;
         }
-        // IF CANDLE DROPS 1.0% IN A 5 MINUTE CANDLE THEN EXIT - maybe? openPrice > tempUpperMidBand
+        // IF CANDLE DROPS 1.0% IN A 5 MINUTE CANDLE THEN EXIT - openPrice > tempUpperMidBand maybe?
         else if (newPrice < openPriceDrop && openPrice != activeTradeOpenPrice && hasActiveTrade && newPrice < tempUpperMidBand) {
             dbb = 7;
             if (debugging) { System.out.println("DBB: " + dbb); }
@@ -170,8 +170,8 @@ public class DBB implements Indicator {
     }
 
     @Override
-    public int check(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice, boolean hasActiveTrade, Trade activeTrade) {
-        int totalCnt = (int) getTemp(newPrice, openPrice, previousClosePrice, previousOpenPrice, hasActiveTrade, activeTrade);
+    public double check(String pair, double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice, boolean hasActiveTrade, Trade activeTrade) {
+        double totalCnt = getTemp(newPrice, openPrice, previousClosePrice, previousOpenPrice, hasActiveTrade, activeTrade);
         if (totalCnt >= 1) {
             explanation = "Price in DBB buy zone";
             return totalCnt;

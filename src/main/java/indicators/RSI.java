@@ -9,8 +9,6 @@ import utilities.SlackUtilities;
 
 import java.util.List;
 
-import static trading.BuySell.getSlackWebhook;
-
 public class RSI implements Indicator {
 
     private double avgUp;
@@ -100,23 +98,25 @@ public class RSI implements Indicator {
 
     @SneakyThrows
     @Override
-    public int check(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice, boolean hasActiveTrade, Trade activeTrade) {
+    public double check(String pair, double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice, boolean hasActiveTrade, Trade activeTrade) {
         double temp = getTemp(newPrice, openPrice, previousClosePrice, previousOpenPrice, hasActiveTrade, activeTrade);
-        double previousRsiPadded = (previousRsiValue*0.05)+previousRsiValue;
+        double previousRsiPadded = (previousRsiValue*0.05) + previousRsiValue;
+        double previousRsiNegativePadded = previousRsiValue - (previousRsiValue*0.15);
         int rsi = 0;
         boolean debugging = Mode.get() == Mode.BACKTESTING;
 
         if (debugging) {
-            System.out.println("RSI temp: " + temp + " newPrice: " + newPrice + " POSITIVE_MAX: " + POSITIVE_MAX + " hasActiveTrade: " + hasActiveTrade);
+            System.out.println("RSI temp: " + temp + " newPrice: " + newPrice + " POSITIVE_MAX: " + POSITIVE_MAX + " hasActiveTrade: " + hasActiveTrade + " previousRsiValue: " + previousRsiValue + " previousRsiPadded: " + previousRsiPadded + " previousRsiNegativePadded: " + previousRsiNegativePadded);
         }
 
-        if (!alertSent && temp < 27 && !hasActiveTrade && (Mode.get().equals(Mode.LIVE) || Mode.get().equals(Mode.SIMULATION))) {
+        // RSI alerts to slack for possible manual positions
+        if (!alertSent && temp < 30 && !hasActiveTrade && (Mode.get().equals(Mode.LIVE) || Mode.get().equals(Mode.SIMULATION))) {
             alertSent = true;
-            final String message = newPrice + " rsi of " + temp + "!";
+            final String message = pair + " rsi of " + temp + "!";
             SlackMessage slackMessage = SlackMessage.builder()
                     .text(":warning: " + message)
                     .build();
-            SlackUtilities.sendMessage(slackMessage, getSlackWebhook());
+            //SlackUtilities.sendMessage(slackMessage);
         }
 
         if(previousClosePrice == 0 || openPrice == 0) {
@@ -142,9 +142,9 @@ public class RSI implements Indicator {
             explanation = "RSI of " + Formatter.formatDecimal(temp) + " previousRsiValue:" + previousRsiValue + " previousRsiPadded:" + previousRsiPadded;
             return 1;
         }
-        else if (temp > NEGATIVE_MIN && temp < previousRsiValue) {
+        else if (temp > NEGATIVE_MIN && temp < previousRsiNegativePadded) {
             rsi = 12;
-            if (debugging) { System.out.println("RSI: " + rsi); }
+            if (debugging) { System.out.println("RSI: " + rsi + " previousRsiPadded: " + previousRsiPadded + " previousRsiValue: " + previousRsiValue + " previousRsiNegativePadded: " + previousRsiNegativePadded); }
             explanation = "RSI of " + Formatter.formatDecimal(temp);
             return -1;
         }
@@ -154,16 +154,22 @@ public class RSI implements Indicator {
             explanation = "RSI of " + Formatter.formatDecimal(temp);
             return -1;
         }
-        else if (temp > 68 && temp < 78 && !hasActiveTrade) {
+        // Not sure about this, too risky to jump in on a possible breakout based on RSI
+        /*else if (temp > 68 && temp < 78 && !hasActiveTrade) {
             rsi = 14;
             if (debugging) { System.out.println("RSI: " + rsi); }
             explanation = "RSI of " + Formatter.formatDecimal(temp);
             return 1;
-        }
+        }*/
         else if (temp < (previousRsiValue-10)) {
             rsi = 15;
             if (debugging) { System.out.println("RSI: " + rsi); }
             return -1;
+        }
+        else if (temp > previousRsiPadded) {
+            rsi = 15;
+            if (debugging) { System.out.println("RSI: " + rsi); }
+            return 0.5;
         }
 
         explanation = "";

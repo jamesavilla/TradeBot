@@ -74,10 +74,6 @@ public final class Live {
 
         //This doesn't seem to do anything
         //localAccount.getRealAccount().setUpdateTime(1);
-        System.out.println("Can trade: " + localAccount.getRealAccount().isCanTrade());
-        System.out.println(localAccount.getMakerComission() + " Maker commission.");
-        System.out.println(localAccount.getBuyerComission() + " Buyer commission");
-        System.out.println(localAccount.getTakerComission() + " Taker comission");
         BuySell.setAccount(localAccount);
 
         //TODO: Open price for existing currencies

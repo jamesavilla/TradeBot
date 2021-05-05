@@ -31,8 +31,6 @@ public class BuySell {
     private static LocalAccount localAccount;
     public static double MONEY_PER_TRADE;
 
-    private static final File credentialsFile = new File("credentials.txt");
-
     public static void setAccount(LocalAccount localAccount) {
         BuySell.localAccount = localAccount;
     }
@@ -110,7 +108,7 @@ public class BuySell {
             SlackMessage slackMessage = SlackMessage.builder()
                     .text(":large_green_circle: " + message)
                     .build();
-            SlackUtilities.sendMessage(slackMessage, getSlackWebhook());
+            SlackUtilities.sendMessage(slackMessage);
         }
 
         if (Mode.get().equals(Mode.BACKTESTING)) currency.appendLogLine(message);
@@ -166,7 +164,7 @@ public class BuySell {
             SlackMessage slackMessage = SlackMessage.builder()
                     .text(":red_circle: " + message)
                     .build();
-            SlackUtilities.sendMessage(slackMessage, getSlackWebhook());
+            SlackUtilities.sendMessage(slackMessage);
         }
 
         if (Mode.get().equals(Mode.BACKTESTING)) trade.getCurrency().appendLogLine(message);
@@ -235,25 +233,9 @@ public class BuySell {
                 SlackMessage slackMessage = SlackMessage.builder()
                         .text(":warning: " + message)
                         .build();
-                SlackUtilities.sendMessage(slackMessage, getSlackWebhook());
+                SlackUtilities.sendMessage(slackMessage);
             }
             return null;
         }
-    }
-
-    public static String getSlackWebhook() throws Exception {
-        String slackWebhook = "";
-        if (credentialsFile.exists()) {
-            try {
-                final List<String> strings = Files.readAllLines(credentialsFile.toPath());
-                if (!strings.get(0).matches("\\*+")) {
-                    slackWebhook = strings.get(2);
-                }
-            }
-            catch (Exception e) {
-                throw new Exception();
-            }
-        }
-        return slackWebhook;
     }
 }

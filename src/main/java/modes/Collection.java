@@ -270,7 +270,7 @@ public final class Collection {
             symbol = filename.split("_")[0];
         }
          try (PriceWriter writer = new PriceWriter(filename)) {
-            List<Candlestick> candlesticks = CurrentAPI.get().getCandlestickBars(symbol, CandlestickInterval.FIVE_MINUTES, null, null, start);
+            List<Candlestick> candlesticks = CurrentAPI.get().getCandlestickBars(symbol, CandlestickInterval.HOURLY, null, null, start);
             for (int i = 0; i < candlesticks.size() - 1; i++) {
                 Candlestick candlestick = candlesticks.get(i);
                 writer.writeBean(new PriceBean(candlestick.getCloseTime(), Double.parseDouble(candlestick.getClose()), 0, 0, 0, 0, 0, 0, true));
@@ -278,7 +278,7 @@ public final class Collection {
             Candlestick lastCandle = candlesticks.get(candlesticks.size() - 1);
             long candleTime = lastCandle.getCloseTime();
             if (lastCandle.getCloseTime() == start) {
-                candleTime += 300000L;
+                candleTime += 3600000L;
                 writer.writeBean(new PriceBean(lastCandle.getCloseTime(), Double.parseDouble(lastCandle.getClose()), 0, 0, 0, 0, 0, 0));
             }
             PriceBean lastBean = null;
@@ -295,7 +295,7 @@ public final class Collection {
                     while (bean != null) {
                         if (bean.getTimestamp() > candleTime) {
                             lastBean.close();
-                            while (candleTime <= bean.getTimestamp()) candleTime += 300000L;
+                            while (candleTime <= bean.getTimestamp()) candleTime += 3600000L;
                         }
                         writer.writeBean(lastBean);
                         lastBean = bean;

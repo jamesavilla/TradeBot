@@ -4,6 +4,7 @@ import com.binance.api.client.domain.general.RateLimit;
 import com.binance.api.client.domain.general.RateLimitType;
 import indicators.MACD;
 import indicators.RSI;
+import lombok.SneakyThrows;
 import modes.Backtesting;
 import modes.Simulation;
 import trading.BuySell;
@@ -15,6 +16,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.*;
 
 public class ConfigSetup {
@@ -25,6 +27,8 @@ public class ConfigSetup {
     private static final StringBuilder setup = new StringBuilder();
     private static List<String> currencies;
     private static String fiat;
+    private static final File credentialsFile = new File("credentials.txt");
+    private static String slackWebhookUrl;
 
     public ConfigSetup() {
         throw new IllegalStateException("Utility class");
@@ -45,6 +49,8 @@ public class ConfigSetup {
     public static String getFiat() {
         return fiat;
     }
+
+    public static String getSlackWebhookUrl() { return slackWebhookUrl; }
 
     public static void readConfig() {
         Formatter.getSimpleFormatter().setTimeZone(TimeZone.getDefault());
@@ -87,7 +93,7 @@ public class ConfigSetup {
                         Simulation.STARTING_VALUE = Integer.parseInt(arr[1]);
                         break;
                     case "Currencies to track":
-                        currencies = Collections.unmodifiableList(Arrays.asList(arr[1].toUpperCase().split(", ")));
+                        currencies = List.of(arr[1].toUpperCase().split(", "));
                         break;
                     case "Percentage of money per trade":
                         BuySell.MONEY_PER_TRADE = Double.parseDouble(arr[1]);
@@ -119,11 +125,28 @@ public class ConfigSetup {
                 throw new ConfigException("Config file has some missing elements.");
             }
 
+            loadSlackWebhookUrl();
+
         } catch (IOException e) {
             e.printStackTrace();
         } catch (ConfigException e) {
             e.printStackTrace();
             System.exit(0);
+        }
+    }
+
+    @SneakyThrows
+    private static void loadSlackWebhookUrl() {
+        if (credentialsFile.exists()) {
+            try {
+                final List<String> strings = Files.readAllLines(credentialsFile.toPath());
+                if (!strings.get(0).matches("\\*+")) {
+                    slackWebhookUrl = strings.get(2);
+                }
+            }
+            catch (Exception e) {
+                throw new Exception();
+            }
         }
     }
 }

@@ -53,7 +53,7 @@ public class SMA implements Indicator {
     }
 
     @Override
-    public int check(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice, boolean hasActiveTrade, Trade activeTrade) {
+    public double check(String pair, double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice, boolean hasActiveTrade, Trade activeTrade) {
         return 0;
     }
 

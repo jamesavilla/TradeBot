@@ -28,8 +28,6 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-import static trading.BuySell.getSlackWebhook;
-
 public class Currency {
     public static int CONFLUENCE;
 
@@ -60,7 +58,7 @@ public class Currency {
         this.pair = coin + ConfigSetup.getFiat();
 
         //Every currency needs to contain and update our indicators
-        List<Candlestick> history = CurrentAPI.get().getCandlestickBars(pair, CandlestickInterval.FIVE_MINUTES);
+        List<Candlestick> history = CurrentAPI.get().getCandlestickBars(pair, CandlestickInterval.HOURLY);
         List<Double> closingPrices = history.stream().map(candle -> Double.parseDouble(candle.getClose())).collect(Collectors.toList());
         indicators.add(new RSI(closingPrices, 14));
         indicators.add(new MACD(closingPrices, 12, 26, 9));
@@ -110,7 +108,7 @@ public class Currency {
                 if (newTime > candleTime) {
                     //System.out.println("CANDLE " + response);
                     accept(new PriceBean(candleTime, newPrice, currentOpenPrice, previousClosePrice, 0, 0, previousOpenPrice, previousHighPrice, true));
-                    candleTime += 300000L;
+                    candleTime += 3600000L;
                     setCurrentOpenPrice.set(true);
                     previousClosePrice = newPrice;
                     previousOpenPrice = currentOpenPrice;
@@ -133,7 +131,7 @@ public class Currency {
                     SlackMessage slackMessage = SlackMessage.builder()
                             .text(":warning: " + message)
                             .build();
-                    SlackUtilities.sendMessage(slackMessage, getSlackWebhook());
+                    SlackUtilities.sendMessage(slackMessage);
                 }
 
                 startWebsocket(coin, pair);
@@ -238,7 +236,7 @@ public class Currency {
         if (!currentlyCalculating.get()) {
             currentlyCalculating.set(true);
             //We can disable the strategy and trading logic to only check indicator and price accuracy
-            int confluence = check();
+            int confluence = (int) check(this.pair);
 
             try {
                 if (hasActiveTrade()) { //We only allow one active trade per currency, this means we only need to do one of the following:
@@ -257,8 +255,8 @@ public class Currency {
         }
     }
 
-    public int check() {
-        return indicators.stream().mapToInt(indicator -> indicator.check(currentPrice, currentOpenPrice, previousClosePrice, previousOpenPrice, hasActiveTrade(), getActiveTrade())).sum();
+    public double check(String pair) {
+        return indicators.stream().mapToDouble(indicator -> indicator.check(pair, currentPrice, currentOpenPrice, previousClosePrice, previousOpenPrice, hasActiveTrade(), getActiveTrade())).sum();
     }
 
     public String getExplanations() {
