@@ -18,8 +18,8 @@ public class RSICROSS implements Indicator {
     private Indicator previousRSICrossValue;
     private String explanation;
     private boolean alertSent;
-    private boolean rsiCrossedAbove;
-    private boolean rsiCrossedBelow;
+    public boolean rsiCrossedAbove;
+    public boolean rsiCrossedBelow;
     private double previousRsiValue;
     double shortTemp;
 
@@ -93,14 +93,14 @@ public class RSICROSS implements Indicator {
             }*/
 
             if (hasActiveTrade && rsiCrossedAbove && Math.floor(longTemp) < (Math.floor(shortTemp)-3)) {
-                if(Mode.get().equals(Mode.BACKTESTING)) {
-                    System.out.println("");
-                    System.out.println("newPrice " + newPrice);
-                    System.out.println("RSI 1 " + rsiMaHistory);
-                    System.out.println("RSI 2 " + longTemp);
-                    System.out.println("RSI 3 " + shortTemp);
-                    System.out.println("");
-                }
+//                if(Mode.get().equals(Mode.BACKTESTING)) {
+//                    System.out.println("");
+//                    System.out.println("newPrice " + newPrice);
+//                    System.out.println("RSI 1 " + rsiMaHistory);
+//                    System.out.println("RSI 2 " + longTemp);
+//                    System.out.println("RSI 3 " + shortTemp);
+//                    System.out.println("");
+//                }
 //            if (hasActiveTrade && rsiCrossedAbove && longTemp < 60) {
                 //System.out.println("rsiCrossedAbove " + rsiCrossedAbove);
                 //System.out.println("longTemp " + longTemp);
@@ -170,5 +170,10 @@ public class RSICROSS implements Indicator {
 
     @Override
     public Indicator getIndicator() { return this; }
+
+    public void resetFlags() {
+        rsiCrossedAbove = false;
+        rsiCrossedBelow = false;
+    }
 
 }

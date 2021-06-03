@@ -15,6 +15,7 @@ import system.Mode;
 import utilities.SlackMessage;
 import utilities.SlackUtilities;
 
+import javax.sound.midi.SysexMessage;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -214,6 +215,14 @@ public class Currency {
             Optional<Indicator> maybeDbbIndicator = indicators.stream().filter(indicator -> indicator.getName().equals("DBB")).findFirst();
             Optional<Indicator> maybeEmaCrossIndicator = indicators.stream().filter(indicator -> indicator.getName().equals("EMACROSS")).findFirst();
             Optional<Indicator> maybeRsiCrossIndicator = indicators.stream().filter(indicator -> indicator.getName().equals("RSICROSS")).findFirst();
+//            System.out.println("");
+//            indicators.stream().filter(indicator -> indicator.getName().equals("EMACROSS")).forEach(indicator -> {
+//                System.out.println("currentPrice " + currentPrice);
+//                System.out.println("currentTime " + system.Formatter.formatDate(currentTime));
+//                System.out.println("currentOpenPrice " + currentOpenPrice);
+//                System.out.println(indicator.getName() + indicator.get());
+//            });
+//            System.out.println("");
             if (maybeRsiIndicator.isPresent()) {
                 Indicator rsiIndicator = maybeRsiIndicator.get();
                 previousRSI = rsiIndicator.get();
@@ -229,6 +238,17 @@ public class Currency {
                 Indicator emaCrossIndicator = maybeEmaCrossIndicator.get();
                 previousEmaCross = emaCrossIndicator.getIndicator();
                 bean.setPreviousEmaCross(previousEmaCross);
+//                EMACROSS pEmaCross = (EMACROSS) previousEmaCross;
+//                EMACROSS pEmaCross2 = (EMACROSS) pEmaCross.getpreviousEMACROSS();
+//                if (null != pEmaCross2) {
+//                    System.out.println("emaCross " + ((EMACROSS) previousEmaCross).getShortEMA().get());
+//                    System.out.println("emaCross " + ((EMACROSS) previousEmaCross).getLongEMA().get());
+//                    System.out.println("previousEmaCross 2 " + pEmaCross2.getShortEMA().get());
+//                    System.out.println("previousEmaCross 1 " + pEmaCross2.getLongEMA().get());
+//                }
+//                else {
+//                    System.out.println("NULL");
+//                }
                 emaCrossIndicator.updateAlertSent();
             }
             if (maybeRsiCrossIndicator.isPresent()) {
@@ -393,5 +413,14 @@ public class Currency {
         if (obj == null) return false;
         if (obj.getClass() != Currency.class) return false;
         return pair.equals(((Currency) obj).pair);
+    }
+
+    public void clearIndicatorFlags() {
+        Optional<Indicator> maybeRsiCrossIndicator = indicators.stream().filter(indicator -> indicator.getName().equals("RSICROSS")).findFirst();
+
+        if (maybeRsiCrossIndicator.isPresent()) {
+            RSICROSS rsiCrossIndicator = (RSICROSS) maybeRsiCrossIndicator.get();
+            rsiCrossIndicator.resetFlags();
+        }
     }
 }

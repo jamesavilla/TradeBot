@@ -23,6 +23,7 @@ public class EMACROSS implements Indicator {
         this.shortEMA = new EMA(closingPrices, shortPeriod, true); //true, because history is needed in MACD calculations.
         this.longEMA = new EMA(closingPrices, longPeriod, true); //true for the same reasons.
         explanation = "";
+        previousEmaCrossValue = null;
         init(closingPrices); //initializing the calculations to get current MACD and signal line.
     }
 
@@ -32,7 +33,12 @@ public class EMACROSS implements Indicator {
     }
 
     @Override
-    public double get() { return 0; }
+    public double get() {
+        EMACROSS previousEmaCrossObject = (EMACROSS) previousEmaCrossValue;
+        if(previousEmaCrossObject != null) {
+            return previousEmaCrossObject.getLongEMA().get();
+        }
+        return 0; }
 
     @Override
     public String getName() { return "EMACROSS"; }
@@ -52,8 +58,16 @@ public class EMACROSS implements Indicator {
             System.out.println("-------------------------------");
         }*/
 
-        if(previousEmaCrossObject != null && previousEmaCrossObject.getShortEMA().get() < previousEmaCrossObject.getLongEMA().get() && shortTemp > longTempPadded) {
-            if(!alertSent && !hasActiveTrade && (Mode.get().equals(Mode.LIVE) || Mode.get().equals(Mode.SIMULATION))) {
+        // previousEmaCrossObject != null && previousEmaCrossObject.getShortEMA().get() < previousEmaCrossObject.getLongEMA().get() &&
+        if(previousEmaCrossObject != null && previousEmaCrossObject.getShortEMA().get() < previousEmaCrossObject.getLongEMA().get() && !hasActiveTrade && shortTemp > longTemp) {
+
+//                System.out.println(previousEmaCrossObject.getShortEMA().get());
+//                System.out.println(previousEmaCrossObject.getLongEMA().get());
+//
+//            System.out.println("shortTemp " +shortTemp);
+//            System.out.println("longTemp " +longTemp);
+//            System.out.println("longTempPadded " +longTempPadded);
+            if(!alertSent && (Mode.get().equals(Mode.LIVE) || Mode.get().equals(Mode.SIMULATION))) {
                 System.out.println("EMA CROSS BUY!");
                 alertSent = true;
                 final String message = "EMA cross buy " + pair + "!";
@@ -65,13 +79,14 @@ public class EMACROSS implements Indicator {
             return 4;
         }
 
-        if(previousEmaCrossObject != null && previousEmaCrossObject.getShortEMA().get() > previousEmaCrossObject.getLongEMA().get() && shortTemp < longTempPadded) {
+        // previousEmaCrossObject != null && previousEmaCrossObject.getShortEMA().get() > previousEmaCrossObject.getLongEMA().get() &&
+        if(previousEmaCrossObject != null && previousEmaCrossObject.getShortEMA().get() > previousEmaCrossObject.getLongEMA().get() && hasActiveTrade && shortTemp < longTemp) {
 //            System.out.println("previousEmaCrossObject.getShortEMA().get() " +previousEmaCrossObject.getShortEMA().get());
 //            System.out.println("previousEmaCrossObject.getLongEMA().get() " +previousEmaCrossObject.getLongEMA().get());
 //            System.out.println("shortTemp " +shortTemp);
 //            System.out.println("longTemp " +longTemp);
 //            System.out.println("longTempPadded " +longTempPadded);
-            if(!alertSent && hasActiveTrade && (Mode.get().equals(Mode.LIVE) || Mode.get().equals(Mode.SIMULATION))) {
+            if(!alertSent && (Mode.get().equals(Mode.LIVE) || Mode.get().equals(Mode.SIMULATION))) {
                 System.out.println("EMA CROSS SELL!");
                 alertSent = true;
                 final String message = "EMA cross sell " + pair + "!";
@@ -121,5 +136,9 @@ public class EMACROSS implements Indicator {
 
     public EMA getShortEMA() {
         return shortEMA;
+    }
+
+    public Indicator getpreviousEMACROSS() {
+        return previousEmaCrossValue;
     }
 }

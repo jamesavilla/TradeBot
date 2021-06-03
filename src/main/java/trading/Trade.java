@@ -1,6 +1,9 @@
 package trading;
 
+import indicators.Indicator;
 import system.Formatter;
+
+import java.util.Optional;
 
 public class Trade {
 
@@ -116,6 +119,8 @@ public class Trade {
 
     //Checks if there is a new highest price for the trade or if the trade has dropped below the stoploss.
     public void update(double newPrice, int confluence, boolean sameCandle) {
+        currency.clearIndicatorFlags();
+
         if(newPrice < low) low = newPrice;
         if (newPrice > high) high = newPrice;
 
