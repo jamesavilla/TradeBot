@@ -52,7 +52,7 @@ public class EMACROSS implements Indicator {
             System.out.println("-------------------------------");
         }*/
 
-        if(previousEmaCrossObject != null && previousEmaCrossObject.getShortEMA().get() < previousEmaCrossObject.getLongEMA().get() && shortTemp >= longTemp) {
+        if(previousEmaCrossObject != null && previousEmaCrossObject.getShortEMA().get() < previousEmaCrossObject.getLongEMA().get() && shortTemp > longTempPadded) {
             if(!alertSent && !hasActiveTrade && (Mode.get().equals(Mode.LIVE) || Mode.get().equals(Mode.SIMULATION))) {
                 System.out.println("EMA CROSS BUY!");
                 alertSent = true;

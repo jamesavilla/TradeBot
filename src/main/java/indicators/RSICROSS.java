@@ -49,22 +49,29 @@ public class RSICROSS implements Indicator {
         double longTemp = longRSI.getTemp(newPrice, openPrice, previousClosePrice, previousOpenPrice, hasActiveTrade, activeTrade, pair);
         double currentSum = 0;
 
+        //System.out.println("1");
+
         for (int i = 0; i < rsiMaHistory.size() - 1; i++) {
             currentSum += rsiMaHistory.get(i);
-            //System.out.println("currentSum " + currentSum);
+//            System.out.println("rsiMaHistory " + i + " " + rsiMaHistory.get(i));
+//            System.out.println("currentSum " + currentSum);
         }
-        shortTemp = currentSum / rsiMaHistory.size();
+        shortTemp = currentSum / (rsiMaHistory.size()-1);
 
-        //System.out.println("longTemp " + longTemp);
-        //System.out.println("shortTemp " + shortTemp);
+//        System.out.println("longTemp " + longTemp);
+//        System.out.println("shortTemp " + shortTemp);
+//        System.out.println("rsiMaHistory size " + rsiMaHistory.size());
+//        System.out.println("currentSum total " + currentSum);
+//
+//        System.out.println("2");
 
         //RSICROSS previousRSICrossObject = (RSICROSS) previousRSICrossValue;
 
-        if(longTemp < 40) {
+        if(longTemp < 40 && !hasActiveTrade) {
             rsiCrossedBelow = true;
         }
 
-        if(longTemp > 60) {
+        if(longTemp > 60 && hasActiveTrade) {
             rsiCrossedAbove = true;
         }
 
@@ -85,7 +92,16 @@ public class RSICROSS implements Indicator {
                 return 4;
             }*/
 
-            if (hasActiveTrade && rsiCrossedAbove && longTemp < 60) {
+            if (hasActiveTrade && rsiCrossedAbove && Math.floor(longTemp) < (Math.floor(shortTemp)-3)) {
+                if(Mode.get().equals(Mode.BACKTESTING)) {
+                    System.out.println("");
+                    System.out.println("newPrice " + newPrice);
+                    System.out.println("RSI 1 " + rsiMaHistory);
+                    System.out.println("RSI 2 " + longTemp);
+                    System.out.println("RSI 3 " + shortTemp);
+                    System.out.println("");
+                }
+//            if (hasActiveTrade && rsiCrossedAbove && longTemp < 60) {
                 //System.out.println("rsiCrossedAbove " + rsiCrossedAbove);
                 //System.out.println("longTemp " + longTemp);
                 if (!alertSent && (Mode.get().equals(Mode.LIVE) || Mode.get().equals(Mode.SIMULATION))) {
@@ -127,10 +143,6 @@ public class RSICROSS implements Indicator {
         longRSI.update(newPrice, openPrice, previousClosePrice, previousRsi, previousDbb, previousEmaCross, previousRsiCross, previousOpenPrice, previousHighPrice);
 
         previousRsiValue = previousRsi;
-
-//        System.out.println("RSI 1 " + rsiMaHistory);
-//        System.out.println("RSI 2 " + longRSI.get());
-//        System.out.println("RSI 3 " + shortTemp);
 
         if(rsiMaHistory.size() >= 10) {
             rsiMaHistory.removeFirst();
