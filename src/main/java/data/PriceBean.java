@@ -1,5 +1,6 @@
 package data;
 
+import indicators.Indicator;
 import system.Formatter;
 
 import java.util.Date;
@@ -12,27 +13,33 @@ public class PriceBean {
     private double previousClosePrice;
     private double previousRsi;
     private double previousDbb;
+    private Indicator previousEmaCross;
+    private Indicator previousRSICross;
     private double previousOpenPrice;
     private double previousHighPrice;
 
-    public PriceBean(long timestamp, double price, double openPrice, double previousClosePrice, double previousRsi, double previousDbb, double previousOpenPrice, double previousHighPrice) {
+    public PriceBean(long timestamp, double price, double openPrice, double previousClosePrice, double previousRsi, double previousDbb, Indicator previousEmaCross, Indicator previousRSICross, double previousOpenPrice, double previousHighPrice) {
         this.price = price;
         this.openPrice = openPrice;
         this.previousClosePrice = previousClosePrice;
         this.previousRsi = previousRsi;
         this.previousDbb = previousDbb;
+        this.previousEmaCross = previousEmaCross;
+        this.previousRSICross = previousRSICross;
         this.previousOpenPrice = previousOpenPrice;
         this.previousHighPrice = previousHighPrice;
         this.timestamp = timestamp;
         this.closing = false;
     }
 
-    public PriceBean(long timestamp, double price, double openPrice, double previousClosePrice, double previousRsi, double previousDbb, double previousOpenPrice, double previousHighPrice, boolean closing) {
+    public PriceBean(long timestamp, double price, double openPrice, double previousClosePrice, double previousRsi, double previousDbb, Indicator previousEmaCross, Indicator previousRSICross, double previousOpenPrice, double previousHighPrice, boolean closing) {
         this.price = price;
         this.openPrice = openPrice;
         this.previousClosePrice = previousClosePrice;
         this.previousRsi = previousRsi;
         this.previousDbb = previousDbb;
+        this.previousEmaCross = previousEmaCross;
+        this.previousRSICross = previousRSICross;
         this.previousOpenPrice = previousOpenPrice;
         this.previousHighPrice = previousHighPrice;
         this.timestamp = timestamp;
@@ -77,6 +84,22 @@ public class PriceBean {
 
     public void setPreviousDbb(double previousDbb) {
         this.previousDbb = previousDbb;
+    }
+
+    public Indicator getPreviousEmaCross() {
+        return previousEmaCross;
+    }
+
+    public void setPreviousEmaCross(Indicator previousEmaCross) {
+        this.previousEmaCross = previousEmaCross;
+    }
+
+    public Indicator getPreviousRSICross() {
+        return previousRSICross;
+    }
+
+    public void setPreviousRSICross(Indicator previousRSICross) {
+        this.previousRSICross = previousRSICross;
     }
 
     public double getPreviousOpenPrice() {

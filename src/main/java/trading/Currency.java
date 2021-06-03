@@ -7,10 +7,7 @@ import data.PriceReader;
 import com.binance.api.client.BinanceApiWebSocketClient;
 import com.binance.api.client.domain.market.Candlestick;
 import com.binance.api.client.domain.market.CandlestickInterval;
-import indicators.DBB;
-import indicators.Indicator;
-import indicators.MACD;
-import indicators.RSI;
+import indicators.*;
 import lombok.SneakyThrows;
 import system.ConfigSetup;
 import system.Formatter;
@@ -43,6 +40,8 @@ public class Currency {
     private double previousClosePrice;
     private double previousRSI;
     private double previousDBB;
+    private Indicator previousEmaCross;
+    private Indicator previousRsiCross;
     private double previousOpenPrice;
     private double previousHighPrice;
     private double currentHighPrice;
@@ -60,10 +59,11 @@ public class Currency {
         //Every currency needs to contain and update our indicators
         List<Candlestick> history = CurrentAPI.get().getCandlestickBars(pair, CandlestickInterval.HOURLY);
         List<Double> closingPrices = history.stream().map(candle -> Double.parseDouble(candle.getClose())).collect(Collectors.toList());
-        indicators.add(new RSI(closingPrices, 14));
-        indicators.add(new MACD(closingPrices, 12, 26, 9));
-        indicators.add(new DBB(closingPrices, 20));
-
+        //indicators.add(new RSI(closingPrices, 14));
+        //indicators.add(new MACD(closingPrices, 12, 26, 9));
+        //indicators.add(new DBB(closingPrices, 20));
+        indicators.add(new EMACROSS(closingPrices, 7, 21));
+        indicators.add(new RSICROSS(closingPrices, 10, 24));
         //We set the initial values to check against in onMessage based on the latest candle in history
         currentTime = System.currentTimeMillis();
         candleTime = history.get(history.size() - 1).getCloseTime();
@@ -75,7 +75,7 @@ public class Currency {
 
         startWebsocket(coin, this.pair);
 
-        System.out.println("---SETUP DONE FOR " + this);
+        System.out.println("SETUP DONE FOR " + this);
     }
 
     private void startWebsocket(String coin, String pair) {
@@ -107,7 +107,7 @@ public class Currency {
 
                 if (newTime > candleTime) {
                     //System.out.println("CANDLE " + response);
-                    accept(new PriceBean(candleTime, newPrice, currentOpenPrice, previousClosePrice, 0, 0, previousOpenPrice, previousHighPrice, true));
+                    accept(new PriceBean(candleTime, newPrice, currentOpenPrice, previousClosePrice, 0, 0, null, null, previousOpenPrice, previousHighPrice, true));
                     candleTime += 3600000L;
                     setCurrentOpenPrice.set(true);
                     previousClosePrice = newPrice;
@@ -117,7 +117,7 @@ public class Currency {
                 //System.out.println("CANDLE " + response);
                 //System.out.println(String.format("%s,%s,%s,%s,%s", new Date(candleTime), newPrice, currentOpenPrice, previousClosePrice, previousOpenPrice));
 
-                accept(new PriceBean(newTime, newPrice, currentOpenPrice, previousClosePrice, 0, 0, previousOpenPrice, previousHighPrice));
+                accept(new PriceBean(newTime, newPrice, currentOpenPrice, previousClosePrice, 0, 0, null, null, previousOpenPrice, previousHighPrice));
             }
 
             @SneakyThrows
@@ -158,9 +158,12 @@ public class Currency {
                 bean = reader.readPrice();
             }
             //TODO: Fix slight mismatch between MACD backtesting and server values.
-            indicators.add(new RSI(closingPrices, 14));
-            indicators.add(new MACD(closingPrices, 12, 26, 9));
-            indicators.add(new DBB(closingPrices, 20));
+            //indicators.add(new RSI(closingPrices, 14));
+            //indicators.add(new MACD(closingPrices, 12, 26, 9));
+            //indicators.add(new DBB(closingPrices, 20));
+            indicators.add(new EMACROSS(closingPrices, 7, 21));
+            indicators.add(new RSICROSS(closingPrices, 10, 24));
+
             while (bean != null) {
 
                 if (setCurrentOpenPrice.get()) {
@@ -183,10 +186,6 @@ public class Currency {
                     previousClosePrice = bean.getPrice();
                     previousOpenPrice = currentOpenPrice;
                     previousHighPrice = currentHighPrice;
-                }
-
-                if (Mode.get() == Mode.BACKTESTING) {
-                    System.out.println("\n" + bean.dumpAll());
                 }
 
                 bean = reader.readPrice();
@@ -213,6 +212,8 @@ public class Currency {
         if (bean.isClosing()) {
             Optional<Indicator> maybeRsiIndicator = indicators.stream().filter(indicator -> indicator.getName().equals("RSI")).findFirst();
             Optional<Indicator> maybeDbbIndicator = indicators.stream().filter(indicator -> indicator.getName().equals("DBB")).findFirst();
+            Optional<Indicator> maybeEmaCrossIndicator = indicators.stream().filter(indicator -> indicator.getName().equals("EMACROSS")).findFirst();
+            Optional<Indicator> maybeRsiCrossIndicator = indicators.stream().filter(indicator -> indicator.getName().equals("RSICROSS")).findFirst();
             if (maybeRsiIndicator.isPresent()) {
                 Indicator rsiIndicator = maybeRsiIndicator.get();
                 previousRSI = rsiIndicator.get();
@@ -224,9 +225,21 @@ public class Currency {
                 previousDBB = dbbIndicator.get();
                 bean.setPreviousDbb(previousDBB);
             }
+            if (maybeEmaCrossIndicator.isPresent()) {
+                Indicator emaCrossIndicator = maybeEmaCrossIndicator.get();
+                previousEmaCross = emaCrossIndicator.getIndicator();
+                bean.setPreviousEmaCross(previousEmaCross);
+                emaCrossIndicator.updateAlertSent();
+            }
+            if (maybeRsiCrossIndicator.isPresent()) {
+                Indicator rsiCrossIndicator = maybeRsiCrossIndicator.get();
+                previousRsiCross = rsiCrossIndicator.getIndicator();
+                bean.setPreviousRSICross(previousRsiCross);
+                rsiCrossIndicator.updateAlertSent();
+            }
 
             indicators.forEach(indicator -> {
-                indicator.update(bean.getPrice(), bean.getOpenPrice(), bean.getPreviousClosePrice(), bean.getPreviousRsi(), bean.getPreviousDbb(), bean.getPreviousOpenPrice(), bean.getPreviousHighPrice());
+                indicator.update(bean.getPrice(), bean.getOpenPrice(), bean.getPreviousClosePrice(), bean.getPreviousRsi(), bean.getPreviousDbb(), bean.getPreviousEmaCross(), bean.getPreviousRSICross(), bean.getPreviousOpenPrice(), bean.getPreviousHighPrice());
             });
             if (Mode.get().equals(Mode.BACKTESTING)) {
                 appendLogLine(system.Formatter.formatDate(currentTime) + "  " + toString());
@@ -365,7 +378,7 @@ public class Currency {
         if (currentTime == candleTime)
             indicators.forEach(indicator -> s.append(", ").append(indicator.getClass().getSimpleName()).append(": ").append(system.Formatter.formatDecimal(indicator.get())));
         else
-            indicators.forEach(indicator -> s.append(", ").append(indicator.getClass().getSimpleName()).append(": ").append(Formatter.formatDecimal(indicator.getTemp(currentPrice, currentOpenPrice, previousClosePrice, previousOpenPrice, hasActiveTrade(), getActiveTrade()))));
+            indicators.forEach(indicator -> s.append(", ").append(indicator.getClass().getSimpleName()).append(": ").append(Formatter.formatDecimal(indicator.getTemp(currentPrice, currentOpenPrice, previousClosePrice, previousOpenPrice, hasActiveTrade(), getActiveTrade(), pair))));
         s.append(", hasActive: ").append(hasActiveTrade()).append(")");
         return s.toString();
     }

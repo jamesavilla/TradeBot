@@ -43,10 +43,10 @@ public class MACD implements Indicator {
     public String getName() { return ""; }
 
     @Override
-    public double getTemp(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice, boolean hasActiveTrade, Trade activeTrade) {
+    public double getTemp(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice, boolean hasActiveTrade, Trade activeTrade, String pair) {
         //temporary values
-        double longTemp = longEMA.getTemp(newPrice, openPrice, previousClosePrice, previousOpenPrice, hasActiveTrade, activeTrade);
-        double shortTemp = shortEMA.getTemp(newPrice, openPrice, previousClosePrice, previousOpenPrice, hasActiveTrade, activeTrade);
+        double longTemp = longEMA.getTemp(newPrice, openPrice, previousClosePrice, previousOpenPrice, hasActiveTrade, activeTrade, pair);
+        double shortTemp = shortEMA.getTemp(newPrice, openPrice, previousClosePrice, previousOpenPrice, hasActiveTrade, activeTrade, pair);
 
         double tempMACD = shortTemp - longTemp;
         double tempSignal = tempMACD * multiplier + currentSignal * (1 - multiplier);
@@ -74,18 +74,18 @@ public class MACD implements Indicator {
     }
 
     @Override
-    public void update(double newPrice, double openPrice, double previousClosePrice, double previousRsi, double previousDbb, double previousOpenPrice, double previousHighPrice) {
+    public void update(double newPrice, double openPrice, double previousClosePrice, double previousRsi, double previousDbb, Indicator previousEmaCross, Indicator previousRsiCross, double previousOpenPrice, double previousHighPrice) {
         //Updating the EMA values before updating MACD and Signal line.
         lastTick = get();
-        shortEMA.update(newPrice, openPrice, previousClosePrice, previousRsi, previousDbb, previousOpenPrice, previousHighPrice);
-        longEMA.update(newPrice, openPrice, previousClosePrice, previousRsi, previousDbb, previousOpenPrice, previousHighPrice);
+        shortEMA.update(newPrice, openPrice, previousClosePrice, previousRsi, previousDbb, previousEmaCross, previousRsiCross, previousOpenPrice, previousHighPrice);
+        longEMA.update(newPrice, openPrice, previousClosePrice, previousRsi, previousDbb, previousEmaCross, previousRsiCross, previousOpenPrice, previousHighPrice);
         currentMACD = shortEMA.get() - longEMA.get();
         currentSignal = currentMACD * multiplier + currentSignal * (1 - multiplier);
     }
 
     @Override
     public double check(String pair, double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice, boolean hasActiveTrade, Trade activeTrade) {
-        double change = (getTemp(newPrice, openPrice, previousClosePrice, previousOpenPrice, hasActiveTrade, activeTrade) - lastTick) / Math.abs(lastTick);
+        double change = (getTemp(newPrice, openPrice, previousClosePrice, previousOpenPrice, hasActiveTrade, activeTrade, pair) - lastTick) / Math.abs(lastTick);
         if (change > MACD.SIGNAL_CHANGE && get() < 0) {
             //System.out.println("12");
             explanation = "MACD histogram grew by " + Formatter.formatPercent(change);
@@ -103,4 +103,7 @@ public class MACD implements Indicator {
     public String getExplanation() {
         return explanation;
     }
+
+    @Override
+    public Indicator getIndicator() { return this; }
 }

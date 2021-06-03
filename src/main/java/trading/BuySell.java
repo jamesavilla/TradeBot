@@ -30,6 +30,7 @@ public class BuySell {
 
     private static LocalAccount localAccount;
     public static double MONEY_PER_TRADE;
+    public static int MAX_CONCURRENT_TRADES;
 
     public static void setAccount(LocalAccount localAccount) {
         BuySell.localAccount = localAccount;
@@ -46,6 +47,10 @@ public class BuySell {
     //Used by strategy
     @SneakyThrows
     public static void open(Currency currency, String explanation) {
+        if(localAccount.getActiveTrades().size() >= MAX_CONCURRENT_TRADES) {
+            return;
+        }
+
         if (currency.hasActiveTrade()) {
             System.out.println("---Cannot open trade since there already is an open trade for " + currency.getPair() + "!");
             return;
@@ -172,7 +177,7 @@ public class BuySell {
 
     private static double nextAmount() {
         if (Mode.get().equals(Mode.BACKTESTING)) return localAccount.getFiat();
-        return Math.min(localAccount.getFiat(), localAccount.getTotalValue() * MONEY_PER_TRADE);
+        return Math.min(localAccount.getFiat(), ((localAccount.getTotalValue() * MONEY_PER_TRADE)/MAX_CONCURRENT_TRADES));
     }
 
 

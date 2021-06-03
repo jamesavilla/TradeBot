@@ -12,7 +12,7 @@ public class PriceReader implements Closeable {
 
     public PriceBean readPrice() {
         try {
-            return new PriceBean(stream.readLong(), stream.readDouble(), 0, 0, 0, 0, 0, 0, stream.readBoolean());
+            return new PriceBean(stream.readLong(), stream.readDouble(), 0, 0, 0, 0, null, null, 0, 0, stream.readBoolean());
         } catch (IOException e) {
             return null;
         }

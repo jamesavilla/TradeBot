@@ -269,17 +269,17 @@ public final class Collection {
         if (symbol == null) {
             symbol = filename.split("_")[0];
         }
-         try (PriceWriter writer = new PriceWriter(filename)) {
+        try (PriceWriter writer = new PriceWriter(filename)) {
             List<Candlestick> candlesticks = CurrentAPI.get().getCandlestickBars(symbol, CandlestickInterval.HOURLY, null, null, start);
             for (int i = 0; i < candlesticks.size() - 1; i++) {
                 Candlestick candlestick = candlesticks.get(i);
-                writer.writeBean(new PriceBean(candlestick.getCloseTime(), Double.parseDouble(candlestick.getClose()), 0, 0, 0, 0, 0, 0, true));
+                writer.writeBean(new PriceBean(candlestick.getCloseTime(), Double.parseDouble(candlestick.getClose()), 0, 0, 0, 0, null, null, 0, 0, true));
             }
             Candlestick lastCandle = candlesticks.get(candlesticks.size() - 1);
             long candleTime = lastCandle.getCloseTime();
             if (lastCandle.getCloseTime() == start) {
                 candleTime += 3600000L;
-                writer.writeBean(new PriceBean(lastCandle.getCloseTime(), Double.parseDouble(lastCandle.getClose()), 0, 0, 0, 0, 0, 0));
+                writer.writeBean(new PriceBean(lastCandle.getCloseTime(), Double.parseDouble(lastCandle.getClose()), 0, 0, 0, 0, null, null, 0, 0));
             }
             PriceBean lastBean = null;
             boolean first = true;
@@ -348,7 +348,7 @@ public final class Collection {
                         firstReg = false;
                     }
                 }
-                if (bean.getTimestamp() - last > 1800000L && !bean.isClosing()) {
+                if (bean.getTimestamp() - last > 3600000L && !bean.isClosing()) {
                     if (firstGap) {
                         System.out.println("-Gaps (checking for 30min+) usually point to exchange maintenance times, check https://www.binance.com/en/trade/pro/" + symbol.replace(ConfigSetup.getFiat(), "_" + ConfigSetup.getFiat()) + " if suspicious");
                         firstGap = false;
@@ -463,8 +463,8 @@ class TradesCallback implements BinanceApiCallback<List<AggTrade>> {
                     double newPrice = Double.parseDouble(trade.getPrice());
                     if (lastPrice == newPrice) continue;
                     lastPrice = newPrice;
-                    System.out.println(new Date(trade.getTradeTime()) + " - " + newPrice);
-                    writer.writeBean(new PriceBean(trade.getTradeTime(), newPrice, 0, 0, 0, 0, 0, 0));
+                    //System.out.println(new Date(trade.getTradeTime()) + " - " + newPrice);
+                    writer.writeBean(new PriceBean(trade.getTradeTime(), newPrice, 0, 0, 0, 0, null, null, 0, 0));
                 }
             } catch (IOException e) {
                 e.printStackTrace();

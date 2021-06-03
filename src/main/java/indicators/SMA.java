@@ -29,7 +29,7 @@ public class SMA implements Indicator {
     public String getName() { return ""; }
 
     @Override
-    public double getTemp(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice, boolean hasActiveTrade, Trade activeTrade) {
+    public double getTemp(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice, boolean hasActiveTrade, Trade activeTrade, String pair) {
         return ((currentSum - prices.get(0) + newPrice) / (double) period);
     }
 
@@ -45,7 +45,7 @@ public class SMA implements Indicator {
     }
 
     @Override
-    public void update(double newPrice, double openPrice, double previousClosePrice, double previousRsi, double previousDbb, double previousOpenPrice, double previousHighPrice) {
+    public void update(double newPrice, double openPrice, double previousClosePrice, double previousRsi, double previousDbb, Indicator previousEmaCross, Indicator previousRsiCross, double previousOpenPrice, double previousHighPrice) {
         currentSum -= prices.get(0);
         prices.removeFirst();
         prices.add(newPrice);
@@ -84,4 +84,7 @@ public class SMA implements Indicator {
         return Math.sqrt(tempStdev/ (double) period);
 
     }
+
+    @Override
+    public Indicator getIndicator() { return this; }
 }

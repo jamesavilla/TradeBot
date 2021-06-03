@@ -15,16 +15,18 @@ public interface Indicator {
     String getName();
 
     //Used to get value of indicator simulated with the latest non-closed price
-    double getTemp(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice, boolean hasActiveTrade, Trade activeTrade);
+    double getTemp(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice, boolean hasActiveTrade, Trade activeTrade, String pair);
 
     //Used in constructor to set initial value
     void init(List<Double> closingPrices);
 
     //Used to update value with latest closed candle closing price
-    void update(double newPrice, double openPrice, double previousClosePrice, double previousRsi, double previousDbb, double previousOpenPrice, double previousHighPrice);
+    void update(double newPrice, double openPrice, double previousClosePrice, double previousRsi, double previousDbb, Indicator previousEmaCross, Indicator previousRsiCross, double previousOpenPrice, double previousHighPrice);
 
     //Used to check for buy signal
     double check(String pair, double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice, boolean hasActiveTrade, Trade activeTrade);
 
     String getExplanation();
+
+    Indicator getIndicator();
 }

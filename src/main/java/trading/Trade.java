@@ -131,7 +131,7 @@ public class Trade {
             return;
         }
 
-        if (CLOSE_USE_CONFLUENCE && confluence <= -CLOSE_CONFLUENCE) {
+        if (CLOSE_USE_CONFLUENCE && confluence <= -CLOSE_CONFLUENCE && !sameCandle) {
             explanation += "Closed due to: Negative indicator confluence of " + confluence + "\n";
             BuySell.close(this);
             //System.exit(0);

@@ -116,6 +116,9 @@ public class ConfigSetup {
                     case "FIAT":
                         fiat = arr[1].toUpperCase();
                         break;
+                    case "max_concurrent_trades":
+                        BuySell.MAX_CONCURRENT_TRADES = Integer.parseInt(arr[1]);
+                        break;
                     default:
                         items--;
                         break;

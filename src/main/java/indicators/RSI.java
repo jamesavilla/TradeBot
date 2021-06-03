@@ -5,7 +5,6 @@ import system.Formatter;
 import system.Mode;
 import trading.Trade;
 import utilities.SlackMessage;
-import utilities.SlackUtilities;
 
 import java.util.List;
 
@@ -55,7 +54,7 @@ public class RSI implements Indicator {
 
         //Dont use latest unclosed value
         for (int i = period + 1; i < closingPrices.size() - 1; i++) {
-            update(closingPrices.get(i), 0, 0, 0, 0, 0, 0);
+            update(closingPrices.get(i), 0, 0, 0, 0, null, null, 0, 0);
         }
     }
 
@@ -68,7 +67,7 @@ public class RSI implements Indicator {
     public String getName() { return "RSI"; }
 
     @Override
-    public double getTemp(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice, boolean hasActiveTrade, Trade activeTrade) {
+    public double getTemp(double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice, boolean hasActiveTrade, Trade activeTrade, String pair) {
         double change = newPrice - prevClose;
         double tempUp;
         double tempDwn;
@@ -83,7 +82,7 @@ public class RSI implements Indicator {
     }
 
     @Override
-    public void update(double newPrice, double openPrice, double previousClosePrice, double previousRsi, double previousDbb, double previousOpenPrice, double previousHighPrice) {
+    public void update(double newPrice, double openPrice, double previousClosePrice, double previousRsi, double previousDbb, Indicator previousEmaCross, Indicator previousRsiCross, double previousOpenPrice, double previousHighPrice) {
         previousRsiValue = previousRsi;
         double change = newPrice - prevClose;
         if (change > 0) {
@@ -99,11 +98,12 @@ public class RSI implements Indicator {
     @SneakyThrows
     @Override
     public double check(String pair, double newPrice, double openPrice, double previousClosePrice, double previousOpenPrice, boolean hasActiveTrade, Trade activeTrade) {
-        double temp = getTemp(newPrice, openPrice, previousClosePrice, previousOpenPrice, hasActiveTrade, activeTrade);
+        double temp = getTemp(newPrice, openPrice, previousClosePrice, previousOpenPrice, hasActiveTrade, activeTrade, pair);
         double previousRsiPadded = (previousRsiValue*0.05) + previousRsiValue;
         double previousRsiNegativePadded = previousRsiValue - (previousRsiValue*0.15);
         int rsi = 0;
         boolean debugging = Mode.get() == Mode.BACKTESTING;
+        //boolean sameCandle = openPrice == activeTrade.getOpenPrice();
 
         if (debugging) {
             System.out.println("RSI temp: " + temp + " newPrice: " + newPrice + " POSITIVE_MAX: " + POSITIVE_MAX + " hasActiveTrade: " + hasActiveTrade + " previousRsiValue: " + previousRsiValue + " previousRsiPadded: " + previousRsiPadded + " previousRsiNegativePadded: " + previousRsiNegativePadded);
@@ -124,24 +124,24 @@ public class RSI implements Indicator {
             if (debugging) { System.out.println("RSI: " + rsi); }
             return 0;
         }
-        else if (temp < POSITIVE_MIN) {
+        /*else if (temp < POSITIVE_MIN) {
             rsi = 9;
             if (debugging) { System.out.println("RSI: " + rsi); }
             explanation = "RSI of " + Formatter.formatDecimal(temp);
             return 2;
-        }
+        }*/
         else if (temp < POSITIVE_MAX && newPrice < openPrice) {
             rsi = 10;
             if (debugging) { System.out.println("RSI: " + rsi); }
             explanation = "RSI of " + Formatter.formatDecimal(temp);
             return -1;
         }
-        else if (temp < POSITIVE_MAX && newPrice >= previousClosePrice && temp > previousRsiPadded) {
+        /*else if (temp < POSITIVE_MAX && newPrice >= previousClosePrice && temp > previousRsiPadded) {
             rsi = 11;
             if (debugging) { System.out.println("RSI: " + rsi); }
             explanation = "RSI of " + Formatter.formatDecimal(temp) + " previousRsiValue:" + previousRsiValue + " previousRsiPadded:" + previousRsiPadded;
             return 1;
-        }
+        }*/
         else if (temp > NEGATIVE_MIN && temp < previousRsiNegativePadded) {
             rsi = 12;
             if (debugging) { System.out.println("RSI: " + rsi + " previousRsiPadded: " + previousRsiPadded + " previousRsiValue: " + previousRsiValue + " previousRsiNegativePadded: " + previousRsiNegativePadded); }
@@ -152,7 +152,7 @@ public class RSI implements Indicator {
             rsi = 13;
             if (debugging) { System.out.println("RSI: " + rsi); }
             explanation = "RSI of " + Formatter.formatDecimal(temp);
-            return -1;
+            return -4;
         }
         // Not sure about this, too risky to jump in on a possible breakout based on RSI
         /*else if (temp > 68 && temp < 78 && !hasActiveTrade) {
@@ -180,4 +180,7 @@ public class RSI implements Indicator {
     public String getExplanation() {
         return explanation;
     }
+
+    @Override
+    public Indicator getIndicator() { return this; }
 }
