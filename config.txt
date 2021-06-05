@@ -4,12 +4,12 @@ RSI positive side maximum:40
 RSI negative side minimum:55
 RSI negative side maximum:70
 Simulation mode starting value:1000
-Percentage of money per trade:0.90
+Percentage of money per trade:0.95
 Trailing SL:0.10
 Take profit:0.50
 Confluence:2
 Close confluence:2
 Use confluence to close:true
-Currencies to track:ADA, XLM, DOGE, SOL, ETH, ONE, STORJ, BTC, MKR
+Currencies to track:ADA, XLM, DOGE, SOL, ETH, ONE, STORJ, BTC, VET
 FIAT:USDT
 max_concurrent_trades:1
