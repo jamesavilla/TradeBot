@@ -80,7 +80,7 @@ public class EMACROSS implements Indicator {
         }
 
         // previousEmaCrossObject != null && previousEmaCrossObject.getShortEMA().get() > previousEmaCrossObject.getLongEMA().get() &&
-        if(previousEmaCrossObject != null && previousEmaCrossObject.getShortEMA().get() > previousEmaCrossObject.getLongEMA().get() && hasActiveTrade && shortTemp < longTemp) {
+        if(hasActiveTrade && shortTemp < longTemp) {
 //            System.out.println("previousEmaCrossObject.getShortEMA().get() " +previousEmaCrossObject.getShortEMA().get());
 //            System.out.println("previousEmaCrossObject.getLongEMA().get() " +previousEmaCrossObject.getLongEMA().get());
 //            System.out.println("shortTemp " +shortTemp);
