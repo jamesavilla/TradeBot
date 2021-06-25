@@ -21,8 +21,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -273,7 +276,10 @@ public class Currency {
 
             try {
                 if (hasActiveTrade()) { //We only allow one active trade per currency, this means we only need to do one of the following:
-                    boolean sameCandle = currentOpenPrice == getActiveTrade().getOpenPrice();
+                    //boolean sameCandle = currentOpenPrice == getActiveTrade().getOpenPrice();
+                    long openTimePlusBuffer = activeTrade.getOpenTime() + TimeUnit.MINUTES.toMillis(5);
+                    boolean sameCandle = bean.getTimestamp() < openTimePlusBuffer;
+
                     activeTrade.update(currentPrice, confluence, sameCandle); //Update the active trade stop-loss and high values
                 } else {
                     if (confluence >= CONFLUENCE) {

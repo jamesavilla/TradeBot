@@ -1,12 +1,10 @@
 package indicators;
 
-import system.Formatter;
 import system.Mode;
 import trading.Trade;
 import utilities.SlackMessage;
 import utilities.SlackUtilities;
 
-import javax.sound.midi.SysexMessage;
 import java.util.List;
 
 //Default setting in crypto are period of 9, short 12 and long 26.
@@ -48,7 +46,7 @@ public class EMACROSS implements Indicator {
         double longTemp = longEMA.getTemp(newPrice, openPrice, previousClosePrice, previousOpenPrice, hasActiveTrade, activeTrade, pair);
         double shortTemp = shortEMA.getTemp(newPrice, openPrice, previousClosePrice, previousOpenPrice, hasActiveTrade, activeTrade, pair);
         EMACROSS previousEmaCrossObject = (EMACROSS) previousEmaCrossValue;
-        double longTempPadded = longTemp + (longTemp*0.005);
+        //double longTempPadded = Math.floor(longTemp + (longTemp*0.0025));
         /*if(previousEmaCrossObject != null) {
             System.out.println("-------------------------------");
             System.out.println(previousEmaCrossObject.getShortEMA().get());
@@ -59,7 +57,14 @@ public class EMACROSS implements Indicator {
         }*/
 
         // previousEmaCrossObject != null && previousEmaCrossObject.getShortEMA().get() < previousEmaCrossObject.getLongEMA().get() &&
-        if(previousEmaCrossObject != null && previousEmaCrossObject.getShortEMA().get() < previousEmaCrossObject.getLongEMA().get() && !hasActiveTrade && shortTemp > longTemp) {
+        if(previousEmaCrossObject != null &&
+                previousEmaCrossObject.getShortEMA().get() < previousEmaCrossObject.getLongEMA().get() &&
+                !hasActiveTrade &&
+                shortTemp > longTemp &&
+                newPrice > openPrice) {
+
+//            System.out.println("shortTemp " +shortTemp);
+//            System.out.println("longTemp " +longTemp);
 
 //                System.out.println(previousEmaCrossObject.getShortEMA().get());
 //                System.out.println(previousEmaCrossObject.getLongEMA().get());
@@ -80,12 +85,15 @@ public class EMACROSS implements Indicator {
         }
 
         // previousEmaCrossObject != null && previousEmaCrossObject.getShortEMA().get() > previousEmaCrossObject.getLongEMA().get() &&
-        if(hasActiveTrade && shortTemp < longTemp) {
-//            System.out.println("previousEmaCrossObject.getShortEMA().get() " +previousEmaCrossObject.getShortEMA().get());
-//            System.out.println("previousEmaCrossObject.getLongEMA().get() " +previousEmaCrossObject.getLongEMA().get());
+        if(hasActiveTrade && shortTemp <= longTemp) {
 //            System.out.println("shortTemp " +shortTemp);
 //            System.out.println("longTemp " +longTemp);
-//            System.out.println("longTempPadded " +longTempPadded);
+
+////            System.out.println("previousEmaCrossObject.getShortEMA().get() " +previousEmaCrossObject.getShortEMA().get());
+////            System.out.println("previousEmaCrossObject.getLongEMA().get() " +previousEmaCrossObject.getLongEMA().get());
+////            System.out.println("shortTemp " +shortTemp);
+////            System.out.println("longTemp " +longTemp);
+////            System.out.println("longTempPadded " +longTempPadded);
             if(!alertSent && (Mode.get().equals(Mode.LIVE) || Mode.get().equals(Mode.SIMULATION))) {
                 System.out.println("EMA CROSS SELL!");
                 alertSent = true;

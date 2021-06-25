@@ -10,6 +10,6 @@ Take profit:0.50
 Confluence:2
 Close confluence:2
 Use confluence to close:true
-Currencies to track:ADA, XLM, DOGE, SOL, ETH, ONE, STORJ, BTC, VET
+Currencies to track:ADA, DOGE, SOL, ETH, ONE, BTC, VET
 FIAT:USDT
 max_concurrent_trades:1

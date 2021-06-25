@@ -5,32 +5,27 @@ import trading.Trade;
 import utilities.SlackMessage;
 import utilities.SlackUtilities;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-//Default setting in crypto are period of 9, short 12 and long 26.
-//MACD = 12 EMA - 26 EMA and compare to 9 period of MACD value.
 public class RSICROSS implements Indicator {
 
     private final LinkedList<Double> rsiMaHistory;
-    private final RSI longRSI; //Will be the RSI object for longRSI.
+    private final RSI longRSI;
     private Indicator previousRSICrossValue;
     private String explanation;
     private boolean alertSent;
-    public boolean rsiCrossedAbove;
-    public boolean rsiCrossedBelow;
+    public boolean rsiCrossedAbove = false;
+    public boolean rsiCrossedBelow = false;
     private double previousRsiValue;
     double shortTemp;
 
     public RSICROSS(List<Double> closingPrices, int shortPeriod, int longPeriod) {
         this.rsiMaHistory = new LinkedList<>();
-        this.longRSI = new RSI(closingPrices, longPeriod); //true for the same reasons.
+        this.longRSI = new RSI(closingPrices, longPeriod);
         explanation = "";
-        rsiCrossedAbove = false;
-        rsiCrossedBelow = false;
         previousRsiValue = 0;
-        init(closingPrices); //initializing the calculations to get current MACD and signal line.
+        init(closingPrices);
     }
 
     @Override
@@ -49,23 +44,10 @@ public class RSICROSS implements Indicator {
         double longTemp = longRSI.getTemp(newPrice, openPrice, previousClosePrice, previousOpenPrice, hasActiveTrade, activeTrade, pair);
         double currentSum = 0;
 
-        //System.out.println("1");
-
         for (int i = 0; i < rsiMaHistory.size() - 1; i++) {
             currentSum += rsiMaHistory.get(i);
-//            System.out.println("rsiMaHistory " + i + " " + rsiMaHistory.get(i));
-//            System.out.println("currentSum " + currentSum);
         }
         shortTemp = currentSum / (rsiMaHistory.size()-1);
-
-//        System.out.println("longTemp " + longTemp);
-//        System.out.println("shortTemp " + shortTemp);
-//        System.out.println("rsiMaHistory size " + rsiMaHistory.size());
-//        System.out.println("currentSum total " + currentSum);
-//
-//        System.out.println("2");
-
-        //RSICROSS previousRSICrossObject = (RSICROSS) previousRSICrossValue;
 
         if(longTemp < 40 && !hasActiveTrade) {
             rsiCrossedBelow = true;
@@ -92,7 +74,13 @@ public class RSICROSS implements Indicator {
                 return 4;
             }*/
 
-            if (hasActiveTrade && rsiCrossedAbove && Math.floor(longTemp) < (Math.floor(shortTemp)-3)) {
+//            System.out.println("");
+//            System.out.println(rsiCrossedAbove);
+//            System.out.println(Math.floor(longTemp));
+//            System.out.println(Math.floor(shortTemp)-1);
+//            System.out.println("");
+
+            if (hasActiveTrade && rsiCrossedAbove && Math.floor(longTemp) < (Math.floor(shortTemp)-2)) {
 //                if(Mode.get().equals(Mode.BACKTESTING)) {
 //                    System.out.println("");
 //                    System.out.println("newPrice " + newPrice);
@@ -101,9 +89,6 @@ public class RSICROSS implements Indicator {
 //                    System.out.println("RSI 3 " + shortTemp);
 //                    System.out.println("");
 //                }
-//            if (hasActiveTrade && rsiCrossedAbove && longTemp < 60) {
-                //System.out.println("rsiCrossedAbove " + rsiCrossedAbove);
-                //System.out.println("longTemp " + longTemp);
                 if (!alertSent && (Mode.get().equals(Mode.LIVE) || Mode.get().equals(Mode.SIMULATION))) {
                     System.out.println("RSI CROSS SELL!");
                     alertSent = true;

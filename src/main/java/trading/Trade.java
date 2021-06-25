@@ -119,30 +119,32 @@ public class Trade {
 
     //Checks if there is a new highest price for the trade or if the trade has dropped below the stoploss.
     public void update(double newPrice, int confluence, boolean sameCandle) {
-        currency.clearIndicatorFlags();
-
         if(newPrice < low) low = newPrice;
         if (newPrice > high) high = newPrice;
 
         if (getProfit() > TAKE_PROFIT) {
+            currency.clearIndicatorFlags();
             explanation += "Closed due to: Take profit" + "\n";
             BuySell.close(this);
             return;
         }
 
         if (newPrice < high * (1 - TRAILING_SL) && !sameCandle) {
+            currency.clearIndicatorFlags();
             explanation += "Closed due to: Trailing SL" + "\n";
             BuySell.close(this);
             return;
         }
 
         if (CLOSE_USE_CONFLUENCE && confluence <= -CLOSE_CONFLUENCE && !sameCandle) {
+            currency.clearIndicatorFlags();
             explanation += "Closed due to: Negative indicator confluence of " + confluence + "\n";
             BuySell.close(this);
             //System.exit(0);
         }
 
 //        if (CLOSE_USE_CONFLUENCE && confluence >= CLOSE_CONFLUENCE) {
+//            currency.clearIndicatorFlags();
 //            explanation += "Closed due to: Positive indicator confluence of " + confluence;
 //            BuySell.close(this);
 //        }
